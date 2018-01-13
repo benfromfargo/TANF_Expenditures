@@ -436,55 +436,43 @@ props_avg_pdata2 <- pdata.frame(props_avg_pdata2, index = c("STATE", "year"))
 
 # Table 1 - Regression output ####
 
-# All lagged - w/o time effects
-p1 <- plm(ba ~ african_americans + caseload + hispanics + fiscal_stability +
-      liberalism + pcpi_regional + unemployment + wpr,
-    data = avg_props_pdata,
-    model = "within", 
-    effect = "individual")
-
-# All lagged - w/ time effects 
-p2 <- plm(ba ~ factor(year) + african_americans + caseload + hispanics + fiscal_stability +
-      liberalism + pcpi_regional + unemployment + wpr,
-    data = avg_props_pdata, 
-    model = "within", 
-    effect = "individual")
-
-# Non-econ lagged - w/o time effects
-p3 <- plm(ba ~ african_americans + hispanics + fiscal_stability +
+# Without non-lagged variables - without time effects 
+p1 <- plm(ba ~ african_americans + hispanics + fiscal_stability +
             liberalism + wpr,
           data = avg_props_pdata2,
           model = "within", 
           effect = "individual")
 
-# Non-econ lagged - w/ time effects 
+# Without non-lagged variables - with time effects 
+p2 <- plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability +
+            liberalism + wpr,
+          data = avg_props_pdata2, 
+          model = "within", 
+          effect = "individual")
+
+# With lagged variables - without time effects 
+p3 <- plm(ba ~ african_americans + caseload + hispanics + fiscal_stability +
+            liberalism + pcpi_regional + unemployment + wpr,
+          data = avg_props_pdata2, 
+          model = "within", 
+          effect = "individual")
+
+# With lagged variables - with time effects 
 p4 <- plm(ba ~ factor(year) + african_americans + caseload + hispanics + fiscal_stability +
             liberalism + pcpi_regional + unemployment + wpr,
           data = avg_props_pdata2, 
           model = "within", 
           effect = "individual")
 
-# Non-econ lagged - w/ time effects 
-p5 <- plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability +
-            liberalism + wpr,
-          data = avg_props_pdata2, 
-          model = "within", 
-          effect = "individual")
-
-# Non-econ lagged - w/ time effects 
-p6 <- plm(ba ~ african_americans + caseload + hispanics + fiscal_stability +
-            liberalism + pcpi_regional + unemployment + wpr,
-          data = avg_props_pdata2, 
-          model = "within", 
-          effect = "individual")
-
-stargazer(p3, p5, p6, p4, 
+stargazer(p1, p2, p3, p4,
           title = "Table 1 - Regression Output",
+          column.labels = c("Model 1", "Model 2", "Model 3", "Model 4"),
           covariate.labels = c(NA, "caseload (thousands)", NA, NA, NA, NA, NA, NA),
-          dep.var.labels = "Basic Assistance Expenditures",
+          dep.var.labels = "Basic Assistance Expenditures as a Percentage of Total TANF Expenditures",
           omit = "year",
           omit.labels = c("Time Fixed Effects"),
           notes.align = "r",
+          model.numbers = FALSE,
           initial.zero = FALSE,
           out = "Figures and Tables/Table1.html")
 
@@ -517,4 +505,5 @@ stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
           initial.zero = FALSE,
           dep.var.labels = "Basic Assistance Expenditures",
           out = "appendix_table.html")
+
 
