@@ -378,67 +378,112 @@ ind_data <- read_excel("TANF ind vars.xlsx", sheet = "Ind. Variables - FINAL", n
 ind_data <- gather(ind_data, key = category, value = value, -STATE) %>% 
   separate(category, into = c("category", "year"), sep = " ") 
   
-# Increase independent variable years by one to reflect that e.g. 1997 ind vars were in place when 1998 expenditures were decided.
-ind_data <- mutate(ind_data, year = as.numeric(year) + 1) %>% 
-  filter(!year == 2014 & !year == 2015 & !year == 2016) %>% 
+# Increase all independent variable years by one to reflect that e.g. 1997 ind vars were in place when 1998 expenditures were decided.
+ind_data1 <- mutate(ind_data, year = as.numeric(year) + 1) %>% 
+  filter(!year == 2014 & !year == 2015) %>% 
   mutate(year = as.character(year))
+ind_data1 <- spread(ind_data1, key = category, value = value)
 
-ind_data <- spread(ind_data, key = category, value = value)
+# Does not increase economic variables by one 
+ind_data2 <- ind_data %>% 
+  mutate(year = ifelse(category == "african_americans" | category == "hispanics" | 
+                         category == "fiscal_stability" | category == "liberalism" |
+                         category == "wpr", as.numeric(year) + 1, year)) %>% 
+  filter(!year == 1997 & !year == 2014 & !year == 2015) %>% 
+  mutate(year = as.character(year))
+ind_data2 <- spread(ind_data2, key = category, value = value)
 
 # Bind expenditure data to independent variables
-
 to_percent <- function(x) {
   x * 100
 }
 
-join_data <- function(data) {
-  left_join(as.tibble(data), as.tibble(ind_data), by = c("STATE", "year"))
+join_data <- function(x, y) {
+  left_join(as.tibble(x), as.tibble(y), by = c("STATE", "year"))
 }
 
-
-props_pdata <- join_data(props)
+# Final data with all variables lagged one year forward 
+props_pdata <- join_data(props, ind_data1)
 props_pdata_percent <- sapply(props_pdata[, 3:23], to_percent)
 props_pdata <- cbind(props_pdata[, 1:2], props_pdata_percent)
 props_pdata <- pdata.frame(props_pdata, index = c("STATE", "year"))
 
-avg_props_pdata <- join_data(avg_props)
+avg_props_pdata <- join_data(avg_props, ind_data1)
 avg_props_pdata_percent <- sapply(avg_props_pdata[, 3:23], to_percent)
 avg_props_pdata <- cbind(avg_props_pdata[, 1:2], avg_props_pdata_percent)
 avg_props_pdata <- pdata.frame(avg_props_pdata, index = c("STATE", "year"))
 
-props_avg_pdata <- join_data(props_avg)
+props_avg_pdata <- join_data(props_avg, ind_data1)
 props_avg_pdata_percent <- sapply(props_avg_pdata[, 3:23], to_percent)
 props_avg_pdata <- cbind(props_avg_pdata[, 1:2], props_avg_pdata_percent)
 props_avg_pdata <- pdata.frame(props_avg_pdata, index = c("STATE", "year"))
 
+# Final data with only non-economic variables lagged forward
+props_pdata2 <- join_data(props, ind_data2)
+props_pdata_percent2 <- sapply(props_pdata2[, 3:23], to_percent)
+props_pdata2 <- cbind(props_pdata2[, 1:2], props_pdata_percent2)
+props_pdata2 <- pdata.frame(props_pdata2, index = c("STATE", "year"))
+
+avg_props_pdata2 <- join_data(avg_props, ind_data2)
+avg_props_pdata_percent2 <- sapply(avg_props_pdata2[, 3:23], to_percent)
+avg_props_pdata2 <- cbind(avg_props_pdata2[, 1:2], avg_props_pdata_percent2)
+avg_props_pdata2 <- pdata.frame(avg_props_pdata2, index = c("STATE", "year"))
+
+props_avg_pdata2 <- join_data(props_avg, ind_data2)
+props_avg_pdata_percent2 <- sapply(props_avg_pdata2[, 3:23], to_percent)
+props_avg_pdata2 <- cbind(props_avg_pdata2[, 1:2], props_avg_pdata_percent2)
+props_avg_pdata2 <- pdata.frame(props_avg_pdata2, index = c("STATE", "year"))
+
 # Table 1 - Regression output ####
 
-# full - w/o time effects
-p1 <- plm(ba ~ african_americans + caseload_change + hispanics + fiscal_stability +
+# All lagged - w/o time effects
+p1 <- plm(ba ~ african_americans + caseload + hispanics + fiscal_stability +
       liberalism + pcpi_regional + unemployment + wpr,
     data = avg_props_pdata,
     model = "within", 
     effect = "individual")
 
-# full - w/ time effects 
-p2 <- plm(ba ~ factor(year) + african_americans + caseload_change + hispanics + fiscal_stability +
-      liberalism + pcpi_regional + unemployment + wpr + factor(year),
+# All lagged - w/ time effects 
+p2 <- plm(ba ~ factor(year) + african_americans + caseload + hispanics + fiscal_stability +
+      liberalism + pcpi_regional + unemployment + wpr,
     data = avg_props_pdata, 
     model = "within", 
     effect = "individual")
 
-# af_amer w/ time fixed effects
-p3 <- plm(ba ~ factor(year) + african_americans,
-    data = avg_props_pdata, 
-    model = "within", 
-    effect = "individual")
+# Non-econ lagged - w/o time effects
+p3 <- plm(ba ~ african_americans + hispanics + fiscal_stability +
+            liberalism + wpr,
+          data = avg_props_pdata2,
+          model = "within", 
+          effect = "individual")
 
-stargazer(p1, p2,
+# Non-econ lagged - w/ time effects 
+p4 <- plm(ba ~ factor(year) + african_americans + caseload + hispanics + fiscal_stability +
+            liberalism + pcpi_regional + unemployment + wpr,
+          data = avg_props_pdata2, 
+          model = "within", 
+          effect = "individual")
+
+# Non-econ lagged - w/ time effects 
+p5 <- plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability +
+            liberalism + wpr,
+          data = avg_props_pdata2, 
+          model = "within", 
+          effect = "individual")
+
+# Non-econ lagged - w/ time effects 
+p6 <- plm(ba ~ african_americans + caseload + hispanics + fiscal_stability +
+            liberalism + pcpi_regional + unemployment + wpr,
+          data = avg_props_pdata2, 
+          model = "within", 
+          effect = "individual")
+
+stargazer(p3, p5, p6, p4, 
           title = "Table 1 - Regression Output",
+          covariate.labels = c(NA, "caseload (thousands)", NA, NA, NA, NA, NA, NA),
           dep.var.labels = "Basic Assistance Expenditures",
           omit = "year",
           omit.labels = c("Time Fixed Effects"),
-          notes = "All coefficients are expressed as elasticities.",
           notes.align = "r",
           initial.zero = FALSE,
           out = "Figures and Tables/Table1.html")
