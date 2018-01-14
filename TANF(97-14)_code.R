@@ -379,19 +379,10 @@ ind_data <- gather(ind_data, key = category, value = value, -STATE) %>%
   separate(category, into = c("category", "year"), sep = " ") 
   
 # Increase all independent variable years by one to reflect that e.g. 1997 ind vars were in place when 1998 expenditures were decided.
-ind_data1 <- mutate(ind_data, year = as.numeric(year) + 1) %>% 
+ind_data <- mutate(ind_data, year = as.numeric(year) + 1) %>% 
   filter(!year == 2014 & !year == 2015) %>% 
   mutate(year = as.character(year))
-ind_data1 <- spread(ind_data1, key = category, value = value)
-
-# Does not increase economic variables by one 
-ind_data2 <- ind_data %>% 
-  mutate(year = ifelse(category == "african_americans" | category == "hispanics" | 
-                         category == "fiscal_stability" | category == "liberalism" |
-                         category == "wpr", as.numeric(year) + 1, year)) %>% 
-  filter(!year == 1997 & !year == 2014 & !year == 2015) %>% 
-  mutate(year = as.character(year))
-ind_data2 <- spread(ind_data2, key = category, value = value)
+ind_data <- spread(ind_data, key = category, value = value)
 
 # Bind expenditure data to independent variables
 to_percent <- function(x) {
@@ -418,56 +409,38 @@ props_avg_pdata_percent <- sapply(props_avg_pdata[, 3:23], to_percent)
 props_avg_pdata <- cbind(props_avg_pdata[, 1:2], props_avg_pdata_percent)
 props_avg_pdata <- pdata.frame(props_avg_pdata, index = c("STATE", "year"))
 
-# Final data with only non-economic variables lagged forward
-props_pdata2 <- join_data(props, ind_data2)
-props_pdata_percent2 <- sapply(props_pdata2[, 3:23], to_percent)
-props_pdata2 <- cbind(props_pdata2[, 1:2], props_pdata_percent2)
-props_pdata2 <- pdata.frame(props_pdata2, index = c("STATE", "year"))
-
-avg_props_pdata2 <- join_data(avg_props, ind_data2)
-avg_props_pdata_percent2 <- sapply(avg_props_pdata2[, 3:23], to_percent)
-avg_props_pdata2 <- cbind(avg_props_pdata2[, 1:2], avg_props_pdata_percent2)
-avg_props_pdata2 <- pdata.frame(avg_props_pdata2, index = c("STATE", "year"))
-
-props_avg_pdata2 <- join_data(props_avg, ind_data2)
-props_avg_pdata_percent2 <- sapply(props_avg_pdata2[, 3:23], to_percent)
-props_avg_pdata2 <- cbind(props_avg_pdata2[, 1:2], props_avg_pdata_percent2)
-props_avg_pdata2 <- pdata.frame(props_avg_pdata2, index = c("STATE", "year"))
-
 # Table 1 - Regression output ####
 
-# Without non-lagged variables - without time effects 
-p1 <- plm(ba ~ african_americans + hispanics + fiscal_stability +
-            liberalism + wpr,
-          data = avg_props_pdata2,
+# Model 1 : Without caseload, pcpi_regional, and unemployment - no time effects
+p1 <- plm(ba ~ african_americans + hispanics + fiscal_stability + liberalism + wpr,
+          data = avg_props_pdata,
           model = "within", 
           effect = "individual")
 
-# Without non-lagged variables - with time effects 
-p2 <- plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability +
-            liberalism + wpr,
-          data = avg_props_pdata2, 
+# Model 2 : Without pcpi_regional and unemployment - no time effects
+p2 <- plm(ba ~ african_americans + hispanics + fiscal_stability + caseload + liberalism + wpr,
+          data = avg_props_pdata,
           model = "within", 
           effect = "individual")
 
-# With lagged variables - without time effects 
-p3 <- plm(ba ~ african_americans + caseload + hispanics + fiscal_stability +
-            liberalism + pcpi_regional + unemployment + wpr,
-          data = avg_props_pdata2, 
+# Model 3 : All variables - no time effects 
+p3 <- plm(ba ~ african_americans + hispanics + fiscal_stability + caseload + liberalism + wpr + 
+            unemployment + pcpi_regional,
+          data = avg_props_pdata, 
           model = "within", 
           effect = "individual")
 
-# With lagged variables - with time effects 
-p4 <- plm(ba ~ factor(year) + african_americans + caseload + hispanics + fiscal_stability +
-            liberalism + pcpi_regional + unemployment + wpr,
-          data = avg_props_pdata2, 
+# Model 4 : All variables - time effects 
+p4 <- plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability + caseload + liberalism + wpr + 
+            unemployment + pcpi_regional,
+          data = avg_props_pdata, 
           model = "within", 
           effect = "individual")
 
 stargazer(p1, p2, p3, p4,
           title = "Table 1 - Regression Output",
           column.labels = c("Model 1", "Model 2", "Model 3", "Model 4"),
-          covariate.labels = c(NA, "caseload (thousands)", NA, NA, NA, NA, NA, NA),
+          covariate.labels = c(NA, NA, NA, "caseload (thousands)", NA, NA, NA, NA),
           dep.var.labels = "Basic Assistance Expenditures as a Percentage of Total TANF Expenditures",
           omit = "year",
           omit.labels = c("Time Fixed Effects"),
@@ -475,6 +448,9 @@ stargazer(p1, p2, p3, p4,
           model.numbers = FALSE,
           initial.zero = FALSE,
           out = "Figures and Tables/Table1.html")
+
+
+
 
 # Appendix II - Annual Mean and Median Tables ####
 ann_means_print <- aggregate(avg_props[, 3:12], list(avg_props[, 2]), mean, na.rm = TRUE) %>% 
