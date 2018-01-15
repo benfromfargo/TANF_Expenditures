@@ -3,11 +3,7 @@
 # Load required packages
 library(tidyr)
 library(tidyverse)
-library(gdtools)
 library(ggrepel)
-library(grid)
-library(gridExtra)
-library(svglite)
 library(pBrackets)
 library(gtable)
 library(zoo)
@@ -15,7 +11,6 @@ library(plm)
 library(stargazer)
 library(openxlsx)
 library(readxl)
-library(scales)
 
 #Remove scientific notation 
 options(scipen = 999)
@@ -490,12 +485,12 @@ stargazer(p1, p2, p3, p4,
 
 
 
-# Appendix II - Annual Mean and Median Tables ####
+# Tables A.2 and A.3 - Annual Mean and Median Tables ####
 ann_means_print <- aggregate(avg_props[, 3:12], list(avg_props[, 2]), mean, na.rm = TRUE) %>% 
-  write_csv("Appendix Tables/Appendix_annmeans.csv")
+  write_csv("Appendix Tables/TableA.1.csv")
 ann_medians_print <- aggregate(avg_props[, 3:12], list(avg_props[, 2]), median, na.rm = TRUE) %>% 
-  write_csv("Appendix Tables/Appendix_annmedians.csv")
-# Appendix III - Regression output of three cleaning methods ####
+  write_csv("Appendix Tables/TableA.2.csv")
+# Table A.3 - Regression output of three cleaning methods ####
 
 # Time fixed effects 
 p_regress <- function(data) {
@@ -511,13 +506,13 @@ fixed_props_avg <- p_regress(props_avg_pdata)
 
 stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
           column.labels = c("Raw Proportions", "Moving Averages of Proportions", "Proportions of Moving Averages"),
-          title = "Appendix III - Comparing Data Cleaning Methods", 
+          title = "Table A.3 - Regression Output of Three Data Cleaning Methods", 
           covariate.labels = c(NA, NA, NA, "caseload (thousands)", NA, NA, NA, NA),
           omit = "year",
           omit.labels = c("Time Fixed Effects"),
           notes.align = "r",
           initial.zero = FALSE,
           dep.var.labels = "Basic Assistance Expenditures as a Percentage of Total Expenditures",
-          out = "Appendix Tables/appendix_table.html")
+          out = "Appendix Tables/TableA.3.html")
 
 
