@@ -1,5 +1,3 @@
-### TO DO: Change cbinds to joins - use anti_join to check work and make sure everything matches
-
 # Front Matter #####
 
 # Load required packages
