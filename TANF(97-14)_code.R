@@ -461,8 +461,8 @@ ann_medians_print <- aggregate(avg_props[, 3:12], list(avg_props[, 2]), median, 
 
 # Time fixed effects 
 p_regress <- function(data) {
-  plm(ba ~ factor(year) + african_americans + caseload_change + hispanics + fiscal_stability +
-        liberalism + pcpi_regional + unemployment + wpr,
+  plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability + caseload + 
+        liberalism + wpr + unemployment + pcpi_regional,
       data = data, 
       model = "within", 
       effect = "individual")
@@ -473,13 +473,13 @@ fixed_props_avg <- p_regress(props_avg_pdata)
 
 stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
           column.labels = c("Raw Proportions", "Moving Averages of Proportions", "Proportions of Moving Averages"),
-          title = "Regression Results - Comparing Data Cleaning Methods for Basic Assistance Expenditure Data", 
-          notes = "All coefficients are expressed as elasticities.",
+          title = "Appendix III - Comparing Data Cleaning Methods", 
+          covariate.labels = c(NA, NA, NA, "caseload (thousands)", NA, NA, NA, NA),
           omit = "year",
           omit.labels = c("Time Fixed Effects"),
           notes.align = "r",
           initial.zero = FALSE,
-          dep.var.labels = "Basic Assistance Expenditures",
-          out = "appendix_table.html")
+          dep.var.labels = "Basic Assistance Expenditures as a Percentage of Total Expenditures",
+          out = "Appendix Tables/appendix_table.html")
 
 
