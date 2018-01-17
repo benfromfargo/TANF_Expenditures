@@ -18,7 +18,7 @@ options(scipen = 999)
 # Clean Expenditure Data #####
         
 ### Load raw data ###
-raw_data <- read.xlsx("TANF_raw_1.xlsx", sheet = "Raw Values (for R)")
+raw_data <- read.xlsx("Input Data/TANF_expenditures.xlsx", sheet = "Raw Values (for R)")
 
 ### Moving averages of proportions ###
 
@@ -350,7 +350,7 @@ ggsave("Figures and Tables/Figure5.pdf", height = 5, width = 6.5, units = "in")
 # Note: The "missing value" warnings in the boxplot code stem from outlier labelling.
 
 # Figure 6 - TANF Caseload Line Plot ####
-case_data <- read_xlsx("Avg_nat_caseloads.xlsx")
+case_data <- read_xlsx("Input Data/TANF_Figure6_caseloads.xlsx")
 
 ggplot(case_data) +
   geom_line(aes(Year, Caseload)) +
@@ -360,53 +360,9 @@ ggplot(case_data) +
   scale_y_continuous(limits = c(0,9), breaks = seq(0,9,2))
 ggsave("Figures and Tables/Figure6.pdf", height = 4, width = 6, units = "in")
 
-# Figure 7 - basic assistance line plot with recession shaded ####
-# https://www.bea.gov/national/index.htm#gdp
-
-ann_median <- aggregate(props_avg[, 3:12], list(props_avg[, 2]), median, na.rm = TRUE)
-ann_gdp_change <- read.xlsx("gdpchg_fig7.xlsx", sheet = "Sheet2")
-
-state_gdp_change <- read.xlsx("gdp_state_fig7.xlsx", sheet = "pct_chg_lagged") %>% 
-  gather(key = "year", value = "gdp_chg", -state) 
-
-fig7_dat <- as_data_frame(diff(ann_median$ba)) %>% 
-  mutate(year = c("1999", "2000", "2001", "2002", "2003", "2004", "2005", "2006", "2007", 
-                  "2008", "2009", "2010", "2011", "2012", "2013")) %>% 
-  mutate(gdp_change = ann_gdp_change$gdp_chg) %>% 
-  mutate(ba_change = value * 100) %>% 
-  select(year, ba_change, gdp_change)
-
-ggplot(fig7_dat, aes(ba_change, gdp_change)) +
-  geom_point()
-
-boom <- data.frame(state = props_avg[, 1], year = props_avg[, 2], ba = props_avg[, 3],  
-                   ba_chg = (ave(props_avg[, 3], props_avg[, 1], FUN = function(x) c(0, diff(x))) * 100)) %>% 
-  filter(!(year == "1998")) %>%
-  mutate(year = as.character(year)) %>% 
-  mutate(state = as.character(state))
-
-bam <- inner_join(x = boom, y = state_gdp_change, by = c("year", "state")) %>% 
-  filter(year == "2002")
-
-ggplot(bam, aes(ba_chg, gdp_chg)) + 
-  geom_point(aes(color = year), alpha = .5)
-
-
-
-
-
-diff(ann_median$ba)
-  
-fig7_dat <- mutate(ann_median, ba_chg = ())
-
-diff(ann_median$ba)
-
-
-
-
 # Clean Independent Variables #####
 
-ind_data <- read_excel("TANF ind vars.xlsx", sheet = "Ind. Variables - FINAL", na = "NA")
+ind_data <- read_excel("Input Data/TANF_ind-variables.xlsx", sheet = "Ind. Variables - FINAL", na = "NA")
 
 ind_data <- gather(ind_data, key = category, value = value, -STATE) %>% 
   separate(category, into = c("category", "year"), sep = " ") 
