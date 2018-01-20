@@ -225,7 +225,7 @@ bam <- ggplot(ann_means, aes(year, value, fill = category)) +
   annotation_custom(b10) +
   theme(panel.background = element_blank(), 
         legend.position = "none", 
-        plot.margin = unit(c(1, 6, 1, 1), "cm"),
+        plot.margin = unit(c(.5, 6, .5, .5), "cm"),
         axis.text.x = element_text(margin=margin(-10,0,0,0)),
         axis.ticks.x = element_blank(), 
         axis.text.y.right = element_text(margin = margin(r = 3))) + 
