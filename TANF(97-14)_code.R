@@ -362,18 +362,58 @@ ggsave("Figures and Tables/Figure6.pdf", height = 4, width = 6, units = "in")
 
 # Clean Independent Variables #####
 
+budget_lag <- function(data) {
+
+dat1 <- filter(data, 
+       STATE == "ALABAMA" | STATE == "ALASKA" | STATE == "ARIZONA"
+       | STATE == "CALIFORNIA" | STATE == "COLORADO" | STATE == "DELAWARE" | STATE == "FLORIDA"
+       | STATE == "GEORGIA" | STATE == "IDAHO" | STATE == "ILLINOIS"
+       | STATE == "IOWA" | STATE == "KANSAS" | STATE == "LOUISIANA"
+       | STATE == "MARYLAND" | STATE == "MASSACHUSETTS" | STATE == "MICHIGAN"
+       | STATE == "MISSISSIPPI" | STATE == "MISSOURI" | STATE == "NEW JERSEY"
+       | STATE == "NEW MEXICO" | STATE == "NEW YORK" | STATE == "NORTH CAROLINA"
+       | STATE == "OKLAHOMA" | STATE == "PENNSYLVANIA" | STATE == "RHODE ISLAND"
+       | STATE == "SOUTH CAROLINA" | STATE == "SOUTH DAKOTA" | STATE == "TENNESSEE"
+       | STATE == "UTAH" | STATE == "VERMONT" | STATE == "WEST VIRGINIA"
+       | STATE == "WYOMING") %>% 
+  mutate(year = as.numeric(year) - 1) %>% 
+  mutate(year = ifelse(STATE == "ARIZONA" & year == "2000", as.numeric(year) - 1, year))
+
+dat2 <- data %>% 
+  filter(STATE == "ARKANSAS" | STATE == "CONNECTICUT" | STATE == "HAWAII"
+         | STATE == "INDIANA" | STATE == "MAINE" | STATE == "MINNESOTA"
+         | STATE == "MONTANA" | STATE == "NEBRASKA" | STATE == "NEVADA"
+         | STATE == "NEW HAMPSHIRE" | STATE == "NORTH DAKOTA" | STATE == "OHIO"
+         | STATE == "OREGON" | STATE == "TEXAS" | STATE == "WASHINGTON"
+         | STATE == "WISCONSIN") %>% 
+  mutate(year = ifelse(year == "1998" | year == "2000" | year == "2002" | year == "2004"
+                       | year == "2006" | year == "2008" | year == "2010" | year == "2012",
+                       as.numeric(year) - 1, as.numeric(year) - 2))
+
+dat3 <- data %>% 
+  filter(STATE == "KENTUCKY" | STATE == "VIRGINIA") %>% 
+  mutate(year = ifelse(year == "1998" | year == "1999" | year == "2001" | year == "2003" | year == "2005"
+                       | year == "2007" | year == "2009" | year == "2011" | year == "2013",
+                       as.numeric(year) - 1, as.numeric(year) - 2))
+
+data <- rbind(dat1, dat2, dat3) 
+}
+avg_props <- budget_lag(avg_props) %>% 
+  mutate(year = as.character(year))
+props <- budget_lag(props) %>% 
+  mutate(year = as.character(year))
+props_avg <- budget_lag(props_avg) %>% 
+  mutate(year = as.character(year))
+
+# Bind expenditure data to independent variables
 ind_data <- read_excel("Input Data/TANF_ind-variables.xlsx", sheet = "Ind. Variables - FINAL", na = "NA")
 
 ind_data <- gather(ind_data, key = category, value = value, -STATE) %>% 
-  separate(category, into = c("category", "year"), sep = " ") 
-  
-# Increase all independent variable years by one to reflect that e.g. 1997 ind vars were in place when 1998 expenditures were decided.
-ind_data <- mutate(ind_data, year = as.numeric(year) + 1) %>% 
-  filter(!year == 2014 & !year == 2015) %>% 
-  mutate(year = as.character(year))
+  separate(category, into = c("category", "year"), sep = " ") %>%
+  filter(!year == 2013 & !year == 2014)
+
 ind_data <- spread(ind_data, key = category, value = value)
 
-# Bind expenditure data to independent variables
 to_percent <- function(x) {
   x * 100
 }
@@ -487,3 +527,13 @@ fargo <- select(ind_data, STATE, year, liberalism) %>%
 mean(fargo$sd, na.rm = TRUE)
 
   
+
+
+budget <- read_excel("budget_cycles.xlsx", sheet = "for_R", na = "NA")
+budget <- spread(budget, key = year, value = budget)
+write_csv(budget, "budget.csv")
+
+
+
+
+
