@@ -418,22 +418,20 @@ to_percent <- function(x) {
   x * 100
 }
 
-join_data <- function(x, y) {
-  left_join(as.tibble(x), as.tibble(y), by = c("STATE", "year"))
-}
 
-# Final data with all variables lagged one year forward 
-props_pdata <- join_data(props, ind_data)
+# Joined, lagged data for panel regressions
+props_pdata <- left_join(props, ind_data, by = c("STATE", "year"))
+anti_join(props, ind_data, by = c("STATE", "year"))
 props_pdata_percent <- sapply(props_pdata[, 3:20], to_percent)
 props_pdata <- cbind(props_pdata[, 1:2], props_pdata_percent)
 props_pdata <- pdata.frame(props_pdata, index = c("STATE", "year"))
 
-avg_props_pdata <- join_data(avg_props, ind_data)
+avg_props_pdata <- left_join(avg_props, ind_data, by = c("STATE", "year"))
 avg_props_pdata_percent <- sapply(avg_props_pdata[, 3:20], to_percent)
 avg_props_pdata <- cbind(avg_props_pdata[, 1:2], avg_props_pdata_percent)
 avg_props_pdata <- pdata.frame(avg_props_pdata, index = c("STATE", "year"))
 
-props_avg_pdata <- join_data(props_avg, ind_data)
+props_avg_pdata <- left_join(props_avg, ind_data, by = c("STATE", "year"))
 props_avg_pdata_percent <- sapply(props_avg_pdata[, 3:20], to_percent)
 props_avg_pdata <- cbind(props_avg_pdata[, 1:2], props_avg_pdata_percent)
 props_avg_pdata <- pdata.frame(props_avg_pdata, index = c("STATE", "year"))
