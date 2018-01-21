@@ -429,7 +429,7 @@ p4 <- plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability +
 stargazer(p1, p2, p3, p4,
           title = "Table 1 - Regression Output",
           column.labels = c("Model 1", "Model 2", "Model 3", "Model 4"),
-          covariate.labels = c(NA, NA, NA, "caseload (thousands)", NA, NA, NA, "pcpi_regional (thousands)"),
+          covariate.labels = c(NA, NA, NA, "caseload (thousands)", NA, NA, NA, "pcpi regional (thousands)"),
           dep.var.labels = "Basic Assistance Expenditures as a Percentage of Total TANF Expenditures",
           omit = "year",
           omit.labels = c("Time Fixed Effects"),
@@ -463,13 +463,15 @@ fixed_props_avg <- p_regress(props_avg_pdata)
 stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
           column.labels = c("Raw Proportions", "Moving Averages of Proportions", "Proportions of Moving Averages"),
           title = "Table A.4 - Regression Output of Three Data Cleaning Methods", 
-          covariate.labels = c(NA, NA, NA, "caseload (thousands)", NA, NA, NA, "pcpi_regional (thousands)"),
+          covariate.labels = c(NA, NA, NA, "caseload (thousands)", NA, NA, NA, "pcpi regional (thousands)"),
           omit = "year",
           omit.labels = c("Time Fixed Effects"),
           notes.align = "r",
           initial.zero = FALSE,
           dep.var.labels = "Basic Assistance Expenditures as a Percentage of Total Expenditures",
           out = "Appendix Tables/TableA.4.html")
+
+
 
 
 
