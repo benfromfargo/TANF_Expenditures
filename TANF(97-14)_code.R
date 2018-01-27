@@ -1,5 +1,3 @@
-# Check
-
 # Front Matter #####
 
 # Load required packages
@@ -210,6 +208,7 @@ b10 <- bracketsGrob(.99, 0.15, 0.99, .048, h=0.01,  lwd=1, col="black")
 
 bam <- ggplot(ann_means, aes(year, value, fill = category)) +
   geom_col() +
+  scale_fill_grey() +
   labs(y = NULL) +
   scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
   scale_y_continuous(labels = scales::percent) +
@@ -232,7 +231,7 @@ bam <- ggplot(ann_means, aes(year, value, fill = category)) +
         axis.ticks.x = element_blank(), 
         axis.text.y.right = element_text(margin = margin(r = 3))) + 
   ggtitle("Figure 1 - Mean TANF Expenditures as a Percentage 
-of Total Expenditures (1998 - 2013)")
+of Total Expenditures (FY 1998 - 2013)")
 
 gt <- ggplot_gtable(ggplot_build(bam))
 gt$layout$clip[gt$layout$name == "panel"] <- "off"
@@ -272,7 +271,7 @@ ggplot(data_pregnancy) +
   theme(legend.position = "none") +
   scale_y_continuous(labels = scales::percent) +
   ggtitle("Figure 2 - Marriage and Pregnancy Prevention Expenditures as a 
-Percentage of Total TANF Expenditures (1998 - 2013)")
+Percentage of Total TANF Expenditures (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure2.pdf", height = 5, width = 6.5, units = "in")
 
 # Figure 3 - Refundable Tax Credits Boxplot #### 
@@ -296,7 +295,7 @@ ggplot(data_tax) +
   theme(legend.position = "none") +
   scale_y_continuous(labels = scales::percent) +
   ggtitle("Figure 3 - Refundable Tax Credit Expenditures as a Percentage of 
-Total TANF Expenditures (1998 - 2013)")
+Total TANF Expenditures (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure3.pdf", height = 5, width = 6.5, units = "in")
 
 # Figure 4 - Other Non-Assistance Boxplot ####
@@ -320,7 +319,7 @@ ggplot(data_other) +
   theme(legend.position = "none") +
   scale_y_continuous(labels = scales::percent) +
   ggtitle("Figure 4 - Other Non-Assistance Expenditures as a Percentage of 
-Total TANF Expenditures (1998 - 2013)")
+Total TANF Expenditures (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure4.pdf", height = 5, width = 6.5, units = "in")
 
 # Figure 5 - Basic Assistance Boxplot ####
@@ -346,7 +345,7 @@ ggplot(data_ba) +
   theme(legend.position = "none") +
   scale_y_continuous(labels = scales::percent) +
   ggtitle("Figure 5 - Basic Assistance Expenditures as a Percentage of Total 
-TANF Expenditures (1998 - 2013)")
+TANF Expenditures (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure5.pdf", height = 5, width = 6.5, units = "in")
 
 # Note: The "missing value" warnings in the boxplot code stem from outlier labelling.
