@@ -181,7 +181,7 @@ vis_vals <- c(0.9778192, 0.8178061, 0.61509645, 0.43785075,
 cum_sum <- as.data.frame(vis_vals) %>% 
   mutate(year = rep("2013", length.out = 10)) %>% 
   mutate(category = c("Administration and Systems", "Basic Assistance", "Child Care",
-                      "Other Non-Assistance Expenditures","Marriage and Pregnancy Programs", 
+                      "Other Non-Assistance","Marriage and Pregnancy Programs", 
                       "Expenditures Under Prior Law", "Diversion Benefits",
                       "Social Services Block Grant", "Refundable Tax Credits", 
                       "Work Related Activities and Supports"))
