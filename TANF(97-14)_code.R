@@ -166,7 +166,7 @@ writeData(wb2, "props_avg", na_count_props_avg )
 
 saveWorkbook(wb2, "Checks/TANF_na_check.xlsx")
 
-# Figure 1 - Annual Mean Expenditures Stacked Bar Chart ####
+# Figure 1 (old) - Annual Mean Expenditures Stacked Bar Chart ####
 
 ann_means <- aggregate(avg_props[, 3:12], list(avg_props[, 2]), mean, na.rm = TRUE) %>% 
   rename(year = `Group.1`) 
@@ -235,7 +235,36 @@ of Total Expenditures (FY 1998 - 2013)")
 
 gt <- ggplot_gtable(ggplot_build(bam))
 gt$layout$clip[gt$layout$name == "panel"] <- "off"
-pdf("Figures and Tables/Figure1.pdf", width = 6.5, height = 5); plot(gt); dev.off()
+pdf("Figures and Tables/Figure1_old.pdf", width = 6.5, height = 5); plot(gt); dev.off()
+
+# Figure 1 - Facetted Annual Mean Expenditures ####
+if 
+
+ann_means_lab <- ann_means %>% 
+  mutate(category = ifelse(category == "admin", "Administration 
+and Systems",
+                          ifelse(category == "ba", "Basic Assistance",
+                          ifelse(category == "cc", "Child Care",
+                          ifelse(category == "other", "Other Non-Assistance", 
+                          ifelse(category == "pregnancy", "Marriage and Pregnancy 
+Programs",
+                          ifelse(category == "prior", "Expenditures Under 
+Prior Law",
+                          ifelse(category == "shortben", "Diversion Benefits", 
+                          ifelse(category == "ssbg", "Social Services 
+Block Grant",
+                          ifelse(category == "tax", "Refundable Tax Credits",
+                          ifelse(category == "work", "Work Related Activities 
+and Supports", NA)))))))))))
+ 
+ggplot(ann_means_lab, aes(year, value)) +
+  geom_col() +
+  facet_grid(category ~.) +
+  scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
+  scale_y_continuous(name = "", labels = scales::percent) +
+  theme(strip.text.y = element_text(angle = 0)) +
+  ggtitle("Figure 1 - Mean TANF Expenditures as a Percentage of Total Expenditures (FY 1998 - 2013)")
+ggsave("Figures and Tables/Figure1.pdf", height = 5, width = 6.5, units = "in")
 
 # Figure 2 - Marriage and Pregnancy Prevention Boxplot ####
 
@@ -264,11 +293,11 @@ data_pregnancy <- select(data_id, state_id:year, pregnancy) %>%
 ggplot(data_pregnancy) +
   geom_boxplot(aes(year, pregnancy, group = year), outlier.shape = NA) +
   scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
-  theme(axis.title = element_blank()) +
+  theme(axis.title = element_blank(), 
+        legend.position = "none") +
   geom_point(aes(year, outlier2, colour = factor(outlier_vis2))) +
   scale_colour_manual(values = c("grey", "black")) +
   geom_text_repel(aes(year, outlier2, label = outlier_vis), size = 2, nudge_x = .15) +
-  theme(legend.position = "none") +
   scale_y_continuous(labels = scales::percent) +
   ggtitle("Figure 2 - Marriage and Pregnancy Prevention Expenditures as a 
 Percentage of Total TANF Expenditures (FY 1998 - 2013)")
@@ -288,11 +317,11 @@ data_tax <- select(data_id, state_id:year, tax) %>%
 ggplot(data_tax) +
   geom_boxplot(aes(year, tax, group = year), outlier.shape = NA) +
   scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
-  theme(axis.title = element_blank()) +
+  theme(axis.title = element_blank(), 
+        legend.position = "none") +
   geom_point(aes(year, outlier2, colour = factor(outlier_vis2))) +
   geom_text_repel(aes(year, outlier2, label = outlier_vis), size = 2, nudge_x = .15) +
   scale_colour_manual(values = c("grey", "black")) +
-  theme(legend.position = "none") +
   scale_y_continuous(labels = scales::percent) +
   ggtitle("Figure 3 - Refundable Tax Credit Expenditures as a Percentage of 
 Total TANF Expenditures (FY 1998 - 2013)")
@@ -312,11 +341,11 @@ data_other <- select(data_id, state_id:year, other) %>%
 ggplot(data_other) +
   geom_boxplot(aes(year, other, group = year), outlier.shape = NA) +
   scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
-  theme(axis.title = element_blank()) +
+  theme(axis.title = element_blank(), 
+        legend.position = "none") +
   geom_point(aes(year, outlier2, colour = factor(outlier_vis2))) +
   scale_colour_manual(values = c("grey", "black")) +
   geom_text_repel(aes(year, outlier2, label = outlier_vis), size = 2, nudge_x = .15) +
-  theme(legend.position = "none") +
   scale_y_continuous(labels = scales::percent) +
   ggtitle("Figure 4 - Other Non-Assistance Expenditures as a Percentage of 
 Total TANF Expenditures (FY 1998 - 2013)")
@@ -338,11 +367,11 @@ data_ba <- select(data_id, state_id:year, ba) %>%
 ggplot(data_ba) +
   geom_boxplot(aes(year, ba, group = year)) +
   scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
-  theme(axis.title = element_blank()) +
+  theme(axis.title = element_blank(), 
+        legend.position = "none") +
   geom_point(aes(year, outlier2, colour = factor(outlier_vis2))) +
   scale_colour_manual(values = c("grey", "black")) +
   geom_text_repel(aes(year, outlier2, label = outlier_vis), size = 2, nudge_x = .15) +
-  theme(legend.position = "none") +
   scale_y_continuous(labels = scales::percent) +
   ggtitle("Figure 5 - Basic Assistance Expenditures as a Percentage of Total 
 TANF Expenditures (FY 1998 - 2013)")
