@@ -238,8 +238,6 @@ gt$layout$clip[gt$layout$name == "panel"] <- "off"
 pdf("Figures and Tables/Figure1_old.pdf", width = 6.5, height = 5); plot(gt); dev.off()
 
 # Figure 1 - Facetted Annual Mean Expenditures ####
-if 
-
 ann_means_lab <- ann_means %>% 
   mutate(category = ifelse(category == "admin", "Administration 
 and Systems",
@@ -263,7 +261,8 @@ ggplot(ann_means_lab, aes(year, value)) +
   scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
   scale_y_continuous(name = "", labels = scales::percent) +
   theme(strip.text.y = element_text(angle = 0)) +
-  ggtitle("Figure 1 - Mean TANF Expenditures as a Percentage of Total Expenditures (FY 1998 - 2013)")
+  ggtitle("Figure 1 - Mean TANF Expenditures as a Percentage of Total 
+Expenditures by Category (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure1.pdf", height = 5, width = 6.5, units = "in")
 
 # Figure 2 - Marriage and Pregnancy Prevention Boxplot ####
