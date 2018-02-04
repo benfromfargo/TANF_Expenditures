@@ -11,6 +11,7 @@ library(plm)
 library(stargazer)
 library(openxlsx)
 library(readxl)
+library(stats)
 
 #Remove scientific notation 
 options(scipen = 999)
@@ -302,6 +303,14 @@ ggplot(data_pregnancy) +
 Percentage of Total TANF Expenditures (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure2.pdf", height = 5, width = 6.5, units = "in")
 
+# standard deviations 
+data_pregnancy <- data_pregnancy %>%
+  select(STATE, year, pregnancy) 
+data_pregnancy <- spread(data_pregnancy, year, pregnancy)
+sd_pregnancy <- data_frame(year = c("1998", "1999", "2000", "2001", "2002", "2003", "2004",
+                  "2005", "2006", "2007", "2008", "2009", "2010", 
+                  "2011", "2012", "2013"), sd = sapply(data_pregnancy[, 2:17], sd, na.rm = TRUE))
+
 # Figure 3 - Refundable Tax Credits Boxplot #### 
 data_tax <- select(data_id, state_id:year, tax) %>%
   group_by(year) %>% 
@@ -326,6 +335,14 @@ ggplot(data_tax) +
 Total TANF Expenditures (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure3.pdf", height = 5, width = 6.5, units = "in")
 
+# standard deviations 
+data_tax <- data_tax %>%
+  select(STATE, year, tax) 
+data_tax <- spread(data_tax, year, tax)
+sd_tax <- data_frame(year = c("1998", "1999", "2000", "2001", "2002", "2003", "2004",
+                                    "2005", "2006", "2007", "2008", "2009", "2010", 
+                                    "2011", "2012", "2013"), sd = sapply(data_tax[, 2:17], sd, na.rm = TRUE))
+
 # Figure 4 - Other Non-Assistance Boxplot ####
 data_other <- select(data_id, state_id:year, other) %>%
   group_by(year) %>% 
@@ -349,6 +366,14 @@ ggplot(data_other) +
   ggtitle("Figure 4 - Other Non-Assistance Expenditures as a Percentage of 
 Total TANF Expenditures (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure4.pdf", height = 5, width = 6.5, units = "in")
+
+# standard deviations 
+data_other <- data_other %>%
+  select(STATE, year, other) 
+data_other <- spread(data_other, year, other)
+sd_other <- data_frame(year = c("1998", "1999", "2000", "2001", "2002", "2003", "2004",
+                              "2005", "2006", "2007", "2008", "2009", "2010", 
+                              "2011", "2012", "2013"), sd = sapply(data_other[, 2:17], sd, na.rm = TRUE))
 
 # Figure 5 - Basic Assistance Boxplot ####
 data_ba <- select(data_id, state_id:year, ba) %>%
@@ -375,6 +400,13 @@ ggplot(data_ba) +
   ggtitle("Figure 5 - Basic Assistance Expenditures as a Percentage of Total 
 TANF Expenditures (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure5.pdf", height = 5, width = 6.5, units = "in")
+
+data_ba <- data_ba %>%
+  select(STATE, year, ba) 
+data_ba <- spread(data_ba, year, ba)
+sd_ba <- data_frame(year = c("1998", "1999", "2000", "2001", "2002", "2003", "2004",
+                                "2005", "2006", "2007", "2008", "2009", "2010", 
+                                "2011", "2012", "2013"), sd = sapply(data_ba[, 2:17], sd, na.rm = TRUE))
 
 # Note: The "missing value" warnings in the boxplot code stem from outlier labelling.
 
