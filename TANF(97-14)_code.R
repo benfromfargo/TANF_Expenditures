@@ -445,18 +445,15 @@ join_data <- function(x, y) {
 
 # Final data with all variables lagged one year forward 
 props_pdata <- join_data(props, ind_data)
-props_pdata_percent <- sapply(props_pdata[, 3:20], to_percent)
-props_pdata <- cbind(props_pdata[, 1:2], props_pdata_percent)
+props_pdata[, 3:12] <- sapply(props_pdata[, 3:12], to_percent)
 props_pdata <- pdata.frame(props_pdata, index = c("STATE", "year"))
 
 avg_props_pdata <- join_data(avg_props, ind_data)
-avg_props_pdata_percent <- sapply(avg_props_pdata[, 3:20], to_percent)
-avg_props_pdata <- cbind(avg_props_pdata[, 1:2], avg_props_pdata_percent)
+avg_props_pdata[, 3:12] <- sapply(avg_props_pdata[, 3:12], to_percent)
 avg_props_pdata <- pdata.frame(avg_props_pdata, index = c("STATE", "year"))
 
 props_avg_pdata <- join_data(props_avg, ind_data)
-props_avg_pdata_percent <- sapply(props_avg_pdata[, 3:20], to_percent)
-props_avg_pdata <- cbind(props_avg_pdata[, 1:2], props_avg_pdata_percent)
+props_avg[, 3:12] <- sapply(props_avg_pdata[, 3:12], to_percent)
 props_avg_pdata <- pdata.frame(props_avg_pdata, index = c("STATE", "year"))
 
 # Table 1 - Regression output ####
@@ -498,9 +495,6 @@ stargazer(p1, p2, p3, p4,
           model.numbers = FALSE,
           initial.zero = FALSE,
           out = "Figures and Tables/Table1.html")
-
-
-
 
 # Tables A.2 and A.3 - Annual Mean and Median Tables ####
 ann_means_print <- aggregate(avg_props[, 3:12], list(avg_props[, 2]), mean, na.rm = TRUE) %>% 
