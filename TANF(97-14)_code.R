@@ -456,7 +456,7 @@ props_avg_pdata <- join_data(props_avg, ind_data)
 props_avg[, 3:12] <- sapply(props_avg_pdata[, 3:12], to_percent)
 props_avg_pdata <- pdata.frame(props_avg_pdata, index = c("STATE", "year"))
 
-# Table 1 - Regression output ####
+# Table 2 - Regression output ####
 
 # Model 1 : Without caseload, pcpi_regional, and unemployment - no time effects
 p1 <- plm(ba ~ african_americans + hispanics + fiscal_stability + liberalism + wpr,
@@ -485,7 +485,7 @@ p4 <- plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability +
           effect = "individual")
 
 stargazer(p1, p2, p3, p4,
-          title = "Table 1 - Regression Output",
+          title = "Table 2 - Regression Output",
           column.labels = c("Model 1", "Model 2", "Model 3", "Model 4"),
           covariate.labels = c(NA, NA, NA, "caseload (thousands)", NA, NA, NA, "pcpi regional (thousands)"),
           dep.var.labels = "Basic Assistance Expenditures as a Percentage of Total TANF Expenditures",
