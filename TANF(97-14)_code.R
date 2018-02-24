@@ -1,6 +1,4 @@
 # Front Matter #####
-
-# Load required packages
 library(tidyr)
 library(tidyverse)
 library(ggrepel)
@@ -17,11 +15,7 @@ library(stats)
 options(scipen = 999)
 
 # Clean Expenditure Data #####
-        
-### Load raw data ###
 raw_data <- read.xlsx("Input Data/TANF_expenditures.xlsx", sheet = "Raw Values (for R)")
-
-### Moving averages of proportions ###
 
 # Proportions of raw data 
 raw_data <- gather(raw_data, key = "category", value = "value", -STATE) %>% 
@@ -43,16 +37,16 @@ value <- c(
   create_prop(9, raw_data),
   create_prop(10, raw_data), 
   create_prop(11, raw_data)
-  )
+)
 
-# Rearrange colomns to match formula output and bind together
+# Rearrange columns to match formula output and bind together
 ordered_cols <- arrange(raw_data, category, STATE) %>% 
   separate(category, into = c("category", "year"), sep = "_") %>% 
   arrange(category, STATE, year)
 
 props <- cbind(ordered_cols[, 1:3], value)
 
-# Moving averages of proportions 
+#### Moving averages of proportions ###
 props <- props %>%
   filter(!grepl("ztotal", props$category)) %>% 
   arrange(STATE, category)
@@ -81,7 +75,6 @@ avg_props_vis <- cbind(avg_props[, 1:2], avg_props_rnd)
 props_rnd <- as.data.frame(sapply(props[, 3:12], round, digits = 10))
 props <- cbind(props[, 1:2], sapply(props_rnd, re_outliers))
 props_vis <- cbind(props[, 1:2], props_rnd)
-
 
 ### Proportions of moving averages ### 
 
@@ -167,77 +160,6 @@ writeData(wb2, "props_avg", na_count_props_avg )
 
 saveWorkbook(wb2, "Checks/TANF_na_check.xlsx")
 
-# Figure 1 (old) - Annual Mean Expenditures Stacked Bar Chart ####
-
-ann_means <- aggregate(avg_props[, 3:12], list(avg_props[, 2]), mean, na.rm = TRUE) %>% 
-  rename(year = `Group.1`) 
-ann_means <- gather(ann_means, key = "category", value = "value", -year)
-
-vis_vals <- c(0.9778192, 0.8178061, 0.61509645, 0.43785075,
-              0.3096736, 0.25362805, 0.21485205,0.1831645,
-              0.1427271,0.057719) 
-
-cum_sum <- as.data.frame(vis_vals) %>% 
-  mutate(year = rep("2013", length.out = 10)) %>% 
-  mutate(category = c("Administration and Systems", "Basic Assistance", "Child Care",
-                      "Other Non-Assistance","Marriage and Pregnancy Programs", 
-                      "Expenditures Under Prior Law", "Diversion Benefits",
-                      "Social Services Block Grant", "Refundable Tax Credits", 
-                      "Work Related Activities and Supports"))
- 
-bracketsGrob <- function(...){
-  l <- list(...)
-  e <- new.env()
-  e$l <- l
-  grid:::recordGrob(  {
-    do.call(grid.brackets, l)
-  }, e)
-}
-
-b1 <- bracketsGrob(.99, .955, .99, .885, h=0.01, lwd=1, col="black")
-b2 <- bracketsGrob(.99, .885, 0.99, .675, h=0.01,  lwd=1, col="black")
-b3 <- bracketsGrob(.99, 0.675, 0.99, 0.52, h=0.01, lwd=1, col="black")
-b4 <- bracketsGrob(.99, 0.52, 0.99, 0.355, h=0.01,  lwd=1, col="black")
-b5 <- bracketsGrob(.99, 0.355, 0.99, 0.29, h=0.01,  lwd=1, col="black")
-b6 <- bracketsGrob(.99, 0.29, 0.99, 0.25, h=0.01,  lwd=1, col="black")
-b7 <- bracketsGrob(.99, 0.25, 0.99, 0.23, h=0.01,  lwd=1, col="black")
-b8 <- bracketsGrob(.99, 0.23, 0.99, 0.20, h=0.01,  lwd=1, col="black")
-b9 <- bracketsGrob(.99, 0.20, 0.99, 0.15, h=0.01,  lwd=1, col="black")
-b10 <- bracketsGrob(.99, 0.15, 0.99, .048, h=0.01,  lwd=1, col="black")
-
-
-
-bam <- ggplot(ann_means, aes(year, value, fill = category)) +
-  geom_col() +
-  scale_fill_grey() +
-  labs(y = NULL) +
-  scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
-  scale_y_continuous(labels = scales::percent) +
-  geom_text(data = cum_sum, aes(label = category, x = Inf, y = vis_vals), hjust = 0, 
-            size = 2.75, check_overlap = FALSE) +
-  annotation_custom(b1) +
-  annotation_custom(b2) +
-  annotation_custom(b3) +
-  annotation_custom(b4) +
-  annotation_custom(b5) +
-  annotation_custom(b6) +
-  annotation_custom(b7) +
-  annotation_custom(b8) +
-  annotation_custom(b9) +
-  annotation_custom(b10) +
-  theme(panel.background = element_blank(), 
-        legend.position = "none", 
-        plot.margin = unit(c(.5, 6, .5, .5), "cm"),
-        axis.text.x = element_text(margin=margin(-10,0,0,0)),
-        axis.ticks.x = element_blank(), 
-        axis.text.y.right = element_text(margin = margin(r = 3))) + 
-  ggtitle("Figure 1 - Mean TANF Expenditures as a Percentage 
-of Total Expenditures (FY 1998 - 2013)")
-
-gt <- ggplot_gtable(ggplot_build(bam))
-gt$layout$clip[gt$layout$name == "panel"] <- "off"
-pdf("Figures and Tables/Figure1_old.pdf", width = 6.5, height = 5); plot(gt); dev.off()
-
 # Figure 1 - Facetted Annual Mean Expenditures ####
 ann_means_lab <- ann_means %>% 
   mutate(category = ifelse(category == "admin", "Administration 
@@ -255,16 +177,40 @@ Block Grant",
                           ifelse(category == "tax", "Refundable Tax Credits",
                           ifelse(category == "work", "Work Related Activities 
 and Supports", NA)))))))))))
- 
-ggplot(ann_means_lab, aes(year, value)) +
+
+ann_means_lab1 <- ann_means_lab %>% 
+  filter(category == "Administration 
+and Systems" | category == "Basic Assistance"
+         | category == "Child Care" | category == "Diversion Benefits"
+         | category == "Expenditures Under 
+Prior Law")
+ann_means_lab2 <- ann_means_lab %>% 
+  filter(category == "Marriage and Pregnancy 
+Programs" | category == "Other Non-Assistance"
+         | category == "Refundable Tax Credits" | category == "Social Services 
+Block Grant"
+         | category == "Work Related Activities 
+and Supports")
+
+ggplot(ann_means_lab1, aes(year, value)) +
   geom_col() +
   facet_grid(category ~.) +
   scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
-  scale_y_continuous(name = "", labels = scales::percent) +
+  scale_y_continuous(name = "", labels = scales::percent, limits = c(0, .6)) +
   theme(strip.text.y = element_text(angle = 0)) +
   ggtitle("Figure 1 - Mean TANF Expenditures as a Percentage of Total 
 Expenditures by Category (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure1.pdf", height = 5, width = 6.5, units = "in")
+
+ggplot(ann_means_lab2, aes(year, value)) +
+  geom_col() +
+  facet_grid(category ~.) +
+  scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
+  scale_y_continuous(name = "", labels = scales::percent, limits = c(0, .6)) +
+  theme(strip.text.y = element_text(angle = 0)) +
+  ggtitle("Figure 1 - Mean TANF Expenditures as a Percentage of Total 
+Expenditures by Category (FY 1998 - 2013)")
+ggsave("Figures and Tables/Figure1_continued.pdf", height = 5, width = 6.5, units = "in")
 
 # Figure 2 - Marriage and Pregnancy Prevention Boxplot ####
 
