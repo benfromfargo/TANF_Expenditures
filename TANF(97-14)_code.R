@@ -160,7 +160,7 @@ writeData(wb2, "props_avg", na_count_props_avg )
 
 saveWorkbook(wb2, "Checks/TANF_na_check.xlsx")
 
-# Figure 1 - Facetted Annual Mean Expenditures ####
+# Figure 1 - Annual Mean Expenditures ####
 ann_means_lab <- ann_means %>% 
   mutate(category = ifelse(category == "admin", "Administration 
 and Systems",
@@ -208,7 +208,7 @@ ggplot(ann_means_lab2, aes(year, value)) +
   scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
   scale_y_continuous(name = "", labels = scales::percent, limits = c(0, .6)) +
   theme(strip.text.y = element_text(angle = 0)) +
-  ggtitle("Figure 1 - Mean TANF Expenditures as a Percentage of Total 
+  ggtitle("Figure 1 (continued) - Mean TANF Expenditures as a Percentage of Total 
 Expenditures by Category (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure1_continued.pdf", height = 5, width = 6.5, units = "in")
 
