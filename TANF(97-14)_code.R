@@ -15,109 +15,49 @@ library(stats)
 options(scipen = 999)
 
 # Clean Expenditure Data #####
-raw_data <- read.xlsx("Input Data/TANF_expenditures.xlsx", sheet = "Raw Values (for R)")
-
-# Proportions of raw data 
+raw_data <- read.xlsx("Input Data/TANF_expenditures.xlsx", sheet = "Raw Values")
 raw_data <- gather(raw_data, key = "category", value = "value", -STATE) %>% 
-  arrange(STATE)
+  arrange(STATE) %>% 
+  separate(category, into = c("category", "year"), sep = "_")
 
-create_prop <- function(x, data) {
-  data[seq(x, nrow(data), 11), 3] / data[seq(11, nrow(data), 11), 3]
-}
+raw_totals <- raw_data %>% 
+  filter(category == "total") %>% 
+  select(STATE, year, total = value)
 
-value <- c(
-  create_prop(1, raw_data),
-  create_prop(2, raw_data),
-  create_prop(3, raw_data),
-  create_prop(4, raw_data),
-  create_prop(5, raw_data),
-  create_prop(6, raw_data),
-  create_prop(7, raw_data),
-  create_prop(8, raw_data),
-  create_prop(9, raw_data),
-  create_prop(10, raw_data), 
-  create_prop(11, raw_data)
-)
+raw_data <- raw_data %>% 
+  filter(category != "total")
 
-# Rearrange columns to match formula output and bind together
-ordered_cols <- arrange(raw_data, category, STATE) %>% 
-  separate(category, into = c("category", "year"), sep = "_") %>% 
-  arrange(category, STATE, year)
+raw_data <- raw_data %>% 
+  left_join(raw_totals, raw_data, by = c("STATE", "year"))
+anti_join(raw_totals, raw_data, by = c("STATE", "year"))
 
-props <- cbind(ordered_cols[, 1:3], value)
+props <- raw_data %>% 
+  mutate(value = value / total) %>% 
+  select(-total)
 
-#### Moving averages of proportions ###
+avg_props <- data_frame(STATE = props$STATE, category = props$category, 
+                        year = props$year, value = rollmean(props[, 4], 3, fill = NA)) %>% 
+  filter(!(year %in% c("1997", "2014"))) %>% 
+  mutate(value = round(value, 10)) %>% 
+  mutate(value = ifelse(value > 1 | value < 0, NA, value)) %>% 
+  spread(category, value)
+
 props <- props %>%
-  filter(!grepl("ztotal", props$category)) %>% 
-  arrange(STATE, category)
-
-avg_props <- as.data.frame(rollmean(props[, 4], 3, fill = NA))
-avg_props <- cbind(props[, 1:3], avg_props)
-
-# Remove meaningless values
-avg_props <- avg_props %>% 
   filter(!(year %in% c("1997", "2014"))) %>% 
-  spread(key = category, value = "rollmean(props[, 4], 3, fill = NA)")
+  mutate(value = round(value, 10)) %>% 
+  mutate(value = ifelse(value > 1 | value < 0, NA, value)) %>% 
+  spread(category, value)
 
-props <- props %>% 
-  filter(!(year %in% c("1997", "2014"))) %>% 
-  spread(key = category, value = value)
-
-# Replace outliers with NAs and control for numerical errors
-re_outliers <- function(x) {
-  ifelse(x < 0 | x > 1, NA, x)
-}
-
-avg_props_rnd <- as.data.frame(sapply(avg_props[, 3:12], round, digits = 10))
-avg_props <- cbind(avg_props[, 1:2], sapply(avg_props_rnd, re_outliers))
-avg_props_vis <- cbind(avg_props[, 1:2], avg_props_rnd)
-
-props_rnd <- as.data.frame(sapply(props[, 3:12], round, digits = 10))
-props <- cbind(props[, 1:2], sapply(props_rnd, re_outliers))
-props_vis <- cbind(props[, 1:2], props_rnd)
-
-### Proportions of moving averages ### 
-
-# Moving averages of raw data
-avg_raw2 <- raw_data %>% 
-  arrange(STATE, category)
-
-avg_raw <- as.data.frame(rollmean(avg_raw2[, 3], 3, fill = NA))
-avg_raw <- cbind(avg_raw2[, 1:2], avg_raw)
-
-# Proportions of moving averages
-avg_raw <- avg_raw %>% 
-  separate(category, into = c("category", "year"), sep = "_") %>% 
-  arrange(STATE, year) %>% 
-  unite("category", c("category", "year"))
-
-value2 <- c(
-  create_prop(1, avg_raw),
-  create_prop(2, avg_raw),
-  create_prop(3, avg_raw),
-  create_prop(4, avg_raw),
-  create_prop(5, avg_raw),
-  create_prop(6, avg_raw),
-  create_prop(7, avg_raw),
-  create_prop(8, avg_raw),
-  create_prop(9, avg_raw),
-  create_prop(10, avg_raw),
-  create_prop(11, avg_raw)
-)
-
-props_avg <- cbind(ordered_cols[, 1:3], value2)
-
-# Remove meaningless values
+props_avg <- data_frame(STATE = raw_data$STATE, category = raw_data$category, 
+                        year = raw_data$year, value = rollmean(raw_data[, 4], 3, fill = NA),
+                        total = raw_data$total)
 props_avg <- props_avg %>% 
-  filter(!grepl("ztotal", props_avg$category)) %>% 
-  filter(!(year %in% c("1997", "2014"))) %>% 
-  spread(key = category, value = value2)
-
-# Control for numerical errors
-props_avg_rnd <- as.data.frame(sapply(props_avg[, 3:12], round, digits = 10))
-
-props_avg <- cbind(props_avg[, 1:2], sapply(props_avg_rnd, re_outliers))
-props_avg_vis <- cbind(props_avg[, 1:2], props_avg_rnd)
+  filter(!(year %in% c("1997", "2014"))) %>%
+  mutate(value = value/total) %>%
+  mutate(value = round(value, 10)) %>%
+  mutate(value = ifelse(value > 1 | value < 0, NA, value)) %>% 
+  select(-total) %>% 
+  spread(category, value)
 
 # Checks ####
 check_data <- function(data) {
@@ -128,19 +68,16 @@ check_data <- function(data) {
     spread(key = "category", value = "value")
 }
 
-props_excel <- check_data(props_vis) %>% 
+check_data(props_vis) %>% 
   write_csv("Checks/props.csv")
-avg_props_excel <- check_data(avg_props_vis) %>% 
+check_data(avg_props_vis) %>% 
   write_csv("Checks/avg_props.csv")
-props_avg_excel <- check_data(props_avg_vis) %>% 
+check_data(props_avg_vis) %>% 
   write_csv("Checks/props_avg.csv")
 
 # NA count checks
 count_na <- function(data) {
-  na_count <-sapply(data[, 3:12], function(y) sum(is.na(y)))
-  na_count <- data.frame(na_count)
-  
-  na_count <- aggregate(data, list(data[, 2]), function(y) sum(is.na(y))) %>% 
+  na_count <- aggregate(data, list(data$year), function(y) sum(is.na(y))) %>% 
     select(-STATE, -year) %>% 
     rename(year = `Group.1`)
 }
@@ -154,13 +91,17 @@ addWorksheet(wb2, "props")
 addWorksheet(wb2, "avg_props")
 addWorksheet(wb2, "props_avg")
 
-writeData(wb2, "props", na_count_props )
-writeData(wb2, "avg_props", na_count_avg_props )
-writeData(wb2, "props_avg", na_count_props_avg )
+writeData(wb2, "props", na_count_props)
+writeData(wb2, "avg_props", na_count_avg_props)
+writeData(wb2, "props_avg", na_count_props_avg)
 
 saveWorkbook(wb2, "Checks/TANF_na_check.xlsx")
 
 # Figure 1 - Annual Mean Expenditures ####
+ann_means <- aggregate(avg_props[, 3:12], list(avg_props$year), mean, na.rm = TRUE) %>% 
+  rename(year = `Group.1`) 
+ann_means <- gather(ann_means, key = "category", value = "value", -year)
+
 ann_means_lab <- ann_means %>% 
   mutate(category = ifelse(category == "admin", "Administration 
 and Systems",
@@ -368,13 +309,11 @@ ggplot(case_data) +
 ggsave("Figures and Tables/Figure6.pdf", height = 4, width = 6, units = "in")
 
 # Clean Independent Variables #####
-
 ind_data <- read_excel("Input Data/TANF_ind-variables.xlsx", sheet = "Ind. Variables - FINAL", na = "NA")
-
 ind_data <- gather(ind_data, key = category, value = value, -STATE) %>% 
   separate(category, into = c("category", "year"), sep = " ") 
   
-# Increase all independent variable years by one to reflect that e.g. 1997 ind vars were in place when 1998 expenditures were decided.
+# Increase all independent variable years by 1
 ind_data <- mutate(ind_data, year = as.numeric(year) + 1) %>% 
   filter(!year == 2014 & !year == 2015) %>% 
   mutate(year = as.character(year))
@@ -443,9 +382,12 @@ stargazer(p1, p2, p3, p4,
           out = "Figures and Tables/Table1.html")
 
 # Tables A.2 and A.3 - Annual Mean and Median Tables ####
-ann_means_print <- aggregate(avg_props[, 3:12], list(avg_props[, 2]), mean, na.rm = TRUE) %>% 
+aggregate(avg_props[, 3:12], list(avg_props$year), mean, na.rm = TRUE) %>% 
+  rename(year = `Group.1`) %>% 
   write_csv("Appendix Tables/TableA.2.csv")
-ann_medians_print <- aggregate(avg_props[, 3:12], list(avg_props[, 2]), median, na.rm = TRUE) %>% 
+
+aggregate(avg_props[, 3:12], list(avg_props$year), median, na.rm = TRUE) %>%
+  rename(year = `Group.1`) %>%
   write_csv("Appendix Tables/TableA.3.csv")
 # Table A.4 - Regression output of three cleaning methods ####
 

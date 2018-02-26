@@ -38,17 +38,32 @@ props_avg <- data_frame(STATE = raw_data$STATE, category = raw_data$category,
 props_avg <- props_avg %>% 
   filter(!(year %in% c("1997", "2014"))) %>%
   mutate(value = value/total) %>%
+  mutate(value = round(value, 10)) %>%
   mutate(value = ifelse(value > 1 | value < 0, NA, value)) %>% 
   select(-total) %>% 
   spread(category, value)
 
+# NA count checks
+count_na <- function(data) {
+na_count <- aggregate(data, list(data$year), function(y) sum(is.na(y))) %>% 
+    select(-STATE, -year) %>% 
+    rename(year = `Group.1`)
+}
 
 
-props <- spread(props, "category", value = "value")
-bom <- props %>% 
-  mutate(check = admin + ba + cc + other 
-         + pregnancy + prior + shortben + ssbg + tax + work) %>% 
-  filter(check != near(1))
+na_count_props <- count_na(props)
+na_count_avg_props <- count_na(avg_props)
+na_count_props_avg <- count_na(props_avg)
 
+wb2 <- createWorkbook()
+addWorksheet(wb2, "props")
+addWorksheet(wb2, "avg_props")
+addWorksheet(wb2, "props_avg")
+
+writeData(wb2, "props", na_count_props )
+writeData(wb2, "avg_props", na_count_avg_props )
+writeData(wb2, "props_avg", na_count_props_avg )
+
+saveWorkbook(wb2, "Checks/TANF_na_check2.xlsx")
 
 
