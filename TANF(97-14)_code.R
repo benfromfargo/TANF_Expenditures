@@ -102,55 +102,42 @@ ann_means <- aggregate(avg_props[, 3:12], list(avg_props$year), mean, na.rm = TR
   rename(year = `Group.1`) 
 ann_means <- gather(ann_means, key = "category", value = "value", -year)
 
-ann_means_lab <- ann_means %>% 
-  mutate(category = ifelse(category == "admin", "Administration 
-and Systems",
-                          ifelse(category == "ba", "Basic Assistance",
-                          ifelse(category == "cc", "Child Care",
-                          ifelse(category == "other", "Other Non-Assistance", 
-                          ifelse(category == "pregnancy", "Marriage and Pregnancy 
-Programs",
-                          ifelse(category == "prior", "Expenditures Under 
-Prior Law",
-                          ifelse(category == "shortben", "Diversion Benefits", 
-                          ifelse(category == "ssbg", "Social Services 
-Block Grant",
-                          ifelse(category == "tax", "Refundable Tax Credits",
-                          ifelse(category == "work", "Work Related Activities 
-and Supports", NA)))))))))))
-
-ann_means_lab1 <- ann_means_lab %>% 
-  filter(category == "Administration 
-and Systems" | category == "Basic Assistance"
-         | category == "Child Care" | category == "Diversion Benefits"
-         | category == "Expenditures Under 
-Prior Law")
-ann_means_lab2 <- ann_means_lab %>% 
-  filter(category == "Marriage and Pregnancy 
-Programs" | category == "Other Non-Assistance"
-         | category == "Refundable Tax Credits" | category == "Social Services 
-Block Grant"
-         | category == "Work Related Activities 
-and Supports")
-
-ggplot(ann_means_lab1, aes(year, value)) +
+ann_means %>%
+  filter(category == "admin" | category == "ba" | category == "cc" | category == "shortben"
+         | category == "prior") %>%
+  mutate(category = case_when(
+    category == "admin" ~ "Administration and Systems",
+    category == "ba" ~ "Basic Assistance", 
+    category == "cc" ~ "Child Care",
+    category == "shortben" ~ "Diversion Benefits", 
+    category == "prior" ~ "Expenditures Under Prior Law")) %>% 
+  ggplot(aes(year, value)) +
   geom_col() +
   facet_grid(category ~.) +
   scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
   scale_y_continuous(name = "", labels = scales::percent, limits = c(0, .6)) +
   theme(strip.text.y = element_text(angle = 0)) +
   ggtitle("Figure 1 - Mean TANF Expenditures as a Percentage of Total 
-Expenditures by Category (FY 1998 - 2013)")
-ggsave("Figures and Tables/Figure1.pdf", height = 5, width = 6.5, units = "in")
+          Expenditures by Category (FY 1998 - 2013)")
+ggsave("Figures and Tables/Figure1.pdf", height = 5, width = 6.5, units = "in")  
 
-ggplot(ann_means_lab2, aes(year, value)) +
+ann_means %>% 
+    filter(category == "pregnancy" | category == "other" | category == "tax" 
+           | category == "ssbg" | category == "work") %>%
+  mutate(category = case_when(
+                              category == "pregnancy" ~ "Marriage and Pregnancy Programs",
+                              category == "other" ~ "Other Non-Assistance", 
+                              category == "tax" ~ "Refundable Tax Credits",
+                              category == "ssbg" ~ "Social Services Block Grant", 
+                              category == "work" ~ "Work Related Activities and Supports")) %>% 
+  ggplot(aes(year, value)) +
   geom_col() +
   facet_grid(category ~.) +
   scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
   scale_y_continuous(name = "", labels = scales::percent, limits = c(0, .6)) +
   theme(strip.text.y = element_text(angle = 0)) +
   ggtitle("Figure 1 (continued) - Mean TANF Expenditures as a Percentage of Total 
-Expenditures by Category (FY 1998 - 2013)")
+          Expenditures by Category (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure1_continued.pdf", height = 5, width = 6.5, units = "in")
 
 # Figure 2 - Marriage and Pregnancy Prevention Boxplot ####
