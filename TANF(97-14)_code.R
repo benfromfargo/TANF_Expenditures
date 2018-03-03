@@ -68,11 +68,11 @@ check_data <- function(data) {
     spread(key = "category", value = "value")
 }
 
-check_data(props_vis) %>% 
+check_data(props) %>% 
   write_csv("Checks/props.csv")
-check_data(avg_props_vis) %>% 
+check_data(avg_props) %>% 
   write_csv("Checks/avg_props.csv")
-check_data(props_avg_vis) %>% 
+check_data(props_avg) %>% 
   write_csv("Checks/props_avg.csv")
 
 # NA count checks
@@ -106,38 +106,36 @@ ann_means %>%
   filter(category == "admin" | category == "ba" | category == "cc" | category == "shortben"
          | category == "prior") %>%
   mutate(category = case_when(
-    category == "admin" ~ "Administration and Systems",
+    category == "admin" ~ "Administration\nand Systems",
     category == "ba" ~ "Basic Assistance", 
     category == "cc" ~ "Child Care",
     category == "shortben" ~ "Diversion Benefits", 
-    category == "prior" ~ "Expenditures Under Prior Law")) %>% 
+    category == "prior" ~ "Expenditures Under\nPrior Law")) %>% 
   ggplot(aes(year, value)) +
   geom_col() +
   facet_grid(category ~.) +
   scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
   scale_y_continuous(name = "", labels = scales::percent, limits = c(0, .6)) +
   theme(strip.text.y = element_text(angle = 0)) +
-  ggtitle("Figure 1 - Mean TANF Expenditures as a Percentage of Total 
-          Expenditures by Category (FY 1998 - 2013)")
+  ggtitle("Figure 1 - Mean TANF Expenditures as a Percentage of Total\nExpenditures by Category (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure1.pdf", height = 5, width = 6.5, units = "in")  
 
 ann_means %>% 
     filter(category == "pregnancy" | category == "other" | category == "tax" 
            | category == "ssbg" | category == "work") %>%
   mutate(category = case_when(
-                              category == "pregnancy" ~ "Marriage and Pregnancy Programs",
+                              category == "pregnancy" ~ "Marriage and Pregnancy\nPrograms",
                               category == "other" ~ "Other Non-Assistance", 
-                              category == "tax" ~ "Refundable Tax Credits",
-                              category == "ssbg" ~ "Social Services Block Grant", 
-                              category == "work" ~ "Work Related Activities and Supports")) %>% 
+                              category == "tax" ~ "Refundable\nTax Credits",
+                              category == "ssbg" ~ "Social Services\nBlock Grant", 
+                              category == "work" ~ "Work Related Activities\nand Supports")) %>% 
   ggplot(aes(year, value)) +
   geom_col() +
   facet_grid(category ~.) +
   scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
   scale_y_continuous(name = "", labels = scales::percent, limits = c(0, .6)) +
   theme(strip.text.y = element_text(angle = 0)) +
-  ggtitle("Figure 1 (continued) - Mean TANF Expenditures as a Percentage of Total 
-          Expenditures by Category (FY 1998 - 2013)")
+  ggtitle("Figure 1 (continued) - Mean TANF Expenditures as a Percentage of Total\nExpenditures by Category (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure1_continued.pdf", height = 5, width = 6.5, units = "in")
 
 # Figure 2 - Marriage and Pregnancy Prevention Boxplot ####
@@ -149,12 +147,14 @@ s_abbvs <- c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
              "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI",
              "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI",
              "WY")
-data_id <- avg_props %>% 
-  as.tibble() %>%
+
+avg_props_id <- avg_props %>% 
   arrange(desc(year)) %>% 
   mutate(state_id = rep_len(s_abbvs, length.out = 816)) %>%
   select(state_id, STATE, everything())
-data_pregnancy <- select(data_id, state_id:year, pregnancy) %>%
+
+avg_props_id %>% 
+  select(state_id:year, pregnancy) %>%
   group_by(year) %>% 
   mutate(lql= quantile(pregnancy, probs = .25, na.rm = TRUE)) %>% 
   mutate(hql = quantile(pregnancy, probs = .75, na.rm = TRUE)) %>% 
@@ -162,31 +162,28 @@ data_pregnancy <- select(data_id, state_id:year, pregnancy) %>%
   mutate(outlier = ifelse((pregnancy < (lql - (iqr * 1.5))) | (pregnancy > (hql + (iqr * 1.5))), state_id, NA)) %>%
   mutate(outlier2 = ifelse((pregnancy < (lql - (iqr * 1.5))) | (pregnancy > (hql + (iqr * 1.5))), pregnancy, NA)) %>% 
   mutate(outlier_vis = ifelse((outlier != "AR") & (outlier != "LA") & (outlier != "NJ"), NA, state_id)) %>% 
-  mutate(outlier_vis2 = ifelse((is.na(outlier_vis)), 0, 1))
-
-ggplot(data_pregnancy) +
-  geom_boxplot(aes(year, pregnancy, group = year), outlier.shape = NA) +
-  scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
-  theme(axis.title = element_blank(), 
-        legend.position = "none") +
-  geom_point(aes(year, outlier2, colour = factor(outlier_vis2))) +
-  scale_colour_manual(values = c("grey", "black")) +
-  geom_text_repel(aes(year, outlier2, label = outlier_vis), size = 2, nudge_x = .15) +
-  scale_y_continuous(labels = scales::percent) +
-  ggtitle("Figure 2 - Marriage and Pregnancy Prevention Expenditures as a 
-Percentage of Total TANF Expenditures (FY 1998 - 2013)")
+  mutate(outlier_vis2 = ifelse((is.na(outlier_vis)), 0, 1)) %>% 
+  ggplot() +
+      geom_boxplot(aes(year, pregnancy, group = year), outlier.shape = NA) +
+      scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
+      theme(axis.title = element_blank(), legend.position = "none") +
+      geom_point(aes(year, outlier2, colour = factor(outlier_vis2))) +
+      scale_colour_manual(values = c("grey", "black")) +
+      geom_text_repel(aes(year, outlier2, label = outlier_vis), size = 2, nudge_x = .15) +
+      scale_y_continuous(labels = scales::percent) +
+      ggtitle("Figure 2 - Marriage and Pregnancy Prevention Expenditures as a\nPercentage of Total TANF Expenditures (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure2.pdf", height = 5, width = 6.5, units = "in")
 
-# standard deviations 
-data_pregnancy <- data_pregnancy %>%
-  select(STATE, year, pregnancy) 
-data_pregnancy <- spread(data_pregnancy, year, pregnancy)
-sd_pregnancy <- data_frame(year = c("1998", "1999", "2000", "2001", "2002", "2003", "2004",
-                  "2005", "2006", "2007", "2008", "2009", "2010", 
-                  "2011", "2012", "2013"), sd = sapply(data_pregnancy[, 2:17], sd, na.rm = TRUE))
+# standard deviations for marriage and pregnancy programs
+sd_pregnancy <- avg_props_id %>% 
+  select(STATE, year, pregnancy) %>% 
+  spread(year, pregnancy) %>%
+  select(-STATE) %>% 
+  sapply(sd, na.rm = TRUE)
 
 # Figure 3 - Refundable Tax Credits Boxplot #### 
-data_tax <- select(data_id, state_id:year, tax) %>%
+avg_props_id %>% 
+  select(state_id:year, tax) %>%
   group_by(year) %>% 
   mutate(lql= quantile(tax, probs = .25, na.rm = TRUE)) %>% 
   mutate(hql = quantile(tax, probs = .75, na.rm = TRUE)) %>% 
@@ -194,31 +191,29 @@ data_tax <- select(data_id, state_id:year, tax) %>%
   mutate(outlier = ifelse((tax < (lql - (iqr * 1.5))) | (tax > (hql + (iqr * 1.5))), state_id, NA)) %>% 
   mutate(outlier2 = ifelse((tax < (lql - (iqr * 1.5))) | (tax > (hql + (iqr * 1.5))), tax, NA)) %>% 
   mutate(outlier_vis = ifelse((outlier != "NY") & (outlier != "NE") & (outlier != "MN") & (outlier != "KS"), NA, state_id)) %>% 
-  mutate(outlier_vis2 = ifelse((is.na(outlier_vis)), 0, 1))
-
-ggplot(data_tax) +
-  geom_boxplot(aes(year, tax, group = year), outlier.shape = NA) +
-  scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
-  theme(axis.title = element_blank(), 
-        legend.position = "none") +
-  geom_point(aes(year, outlier2, colour = factor(outlier_vis2))) +
-  geom_text_repel(aes(year, outlier2, label = outlier_vis), size = 2, nudge_x = .15) +
-  scale_colour_manual(values = c("grey", "black")) +
-  scale_y_continuous(labels = scales::percent) +
-  ggtitle("Figure 3 - Refundable Tax Credit Expenditures as a Percentage of 
-Total TANF Expenditures (FY 1998 - 2013)")
+  mutate(outlier_vis2 = ifelse((is.na(outlier_vis)), 0, 1)) %>% 
+  ggplot() +
+    geom_boxplot(aes(year, tax, group = year), outlier.shape = NA) +
+    scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
+    theme(axis.title = element_blank(), 
+          legend.position = "none") +
+    geom_point(aes(year, outlier2, colour = factor(outlier_vis2))) +
+    geom_text_repel(aes(year, outlier2, label = outlier_vis), size = 2, nudge_x = .15) +
+    scale_colour_manual(values = c("grey", "black")) +
+    scale_y_continuous(labels = scales::percent) +
+    ggtitle("Figure 3 - Refundable Tax Credit Expenditures as a Percentage of\nTotal TANF Expenditures (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure3.pdf", height = 5, width = 6.5, units = "in")
 
-# standard deviations 
-data_tax <- data_tax %>%
-  select(STATE, year, tax) 
-data_tax <- spread(data_tax, year, tax)
-sd_tax <- data_frame(year = c("1998", "1999", "2000", "2001", "2002", "2003", "2004",
-                                    "2005", "2006", "2007", "2008", "2009", "2010", 
-                                    "2011", "2012", "2013"), sd = sapply(data_tax[, 2:17], sd, na.rm = TRUE))
+# standard deviations for refundable tax credit programs
+sd_tax <- avg_props_id %>%
+  select(STATE, year, tax) %>% 
+  spread(year, tax) %>% 
+  select(-STATE) %>% 
+  sapply(sd, na.rm = TRUE)
 
 # Figure 4 - Other Non-Assistance Boxplot ####
-data_other <- select(data_id, state_id:year, other) %>%
+avg_props_id %>% 
+  select(state_id:year, other) %>%
   group_by(year) %>% 
   mutate(lql= quantile(other, probs = .25, na.rm = TRUE)) %>% 
   mutate(hql = quantile(other, probs = .75, na.rm = TRUE)) %>% 
@@ -226,31 +221,29 @@ data_other <- select(data_id, state_id:year, other) %>%
   mutate(outlier = ifelse((other < (lql - (iqr * 1.5))) | (other > (hql + (iqr * 1.5))), state_id, NA)) %>% 
   mutate(outlier2 = ifelse((other < (lql - (iqr * 1.5))) | (other > (hql + (iqr * 1.5))), other, NA)) %>% 
   mutate(outlier_vis = ifelse((outlier != "GA") & (outlier != "CO") & (outlier != "SC"), NA, state_id)) %>% 
-  mutate(outlier_vis2 = ifelse((is.na(outlier_vis)), 0, 1))
-
-ggplot(data_other) +
-  geom_boxplot(aes(year, other, group = year), outlier.shape = NA) +
-  scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
-  theme(axis.title = element_blank(), 
-        legend.position = "none") +
-  geom_point(aes(year, outlier2, colour = factor(outlier_vis2))) +
-  scale_colour_manual(values = c("grey", "black")) +
-  geom_text_repel(aes(year, outlier2, label = outlier_vis), size = 2, nudge_x = .15) +
-  scale_y_continuous(labels = scales::percent) +
-  ggtitle("Figure 4 - Other Non-Assistance Expenditures as a Percentage of 
-Total TANF Expenditures (FY 1998 - 2013)")
+  mutate(outlier_vis2 = ifelse((is.na(outlier_vis)), 0, 1)) %>% 
+  ggplot() +
+    geom_boxplot(aes(year, other, group = year), outlier.shape = NA) +
+    scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
+    theme(axis.title = element_blank(), 
+          legend.position = "none") +
+    geom_point(aes(year, outlier2, colour = factor(outlier_vis2))) +
+    scale_colour_manual(values = c("grey", "black")) +
+    geom_text_repel(aes(year, outlier2, label = outlier_vis), size = 2, nudge_x = .15) +
+    scale_y_continuous(labels = scales::percent) +
+    ggtitle("Figure 4 - Other Non-Assistance Expenditures as a Percentage of\nTotal TANF Expenditures (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure4.pdf", height = 5, width = 6.5, units = "in")
 
 # standard deviations 
-data_other <- data_other %>%
-  select(STATE, year, other) 
-data_other <- spread(data_other, year, other)
-sd_other <- data_frame(year = c("1998", "1999", "2000", "2001", "2002", "2003", "2004",
-                              "2005", "2006", "2007", "2008", "2009", "2010", 
-                              "2011", "2012", "2013"), sd = sapply(data_other[, 2:17], sd, na.rm = TRUE))
+sd_other <- avg_props_id %>%
+  select(STATE, year, other) %>% 
+  spread(year, other) %>% 
+  select(-STATE) %>% 
+  sapply(sd, na.rm = TRUE)
 
 # Figure 5 - Basic Assistance Boxplot ####
-data_ba <- select(data_id, state_id:year, ba) %>%
+avg_props_id %>% 
+  select(state_id:year, ba) %>%
   group_by(year) %>% 
   mutate(lql= quantile(ba, probs = .25, na.rm = TRUE)) %>% 
   mutate(hql = quantile(ba, probs = .75, na.rm = TRUE)) %>% 
@@ -260,27 +253,25 @@ data_ba <- select(data_id, state_id:year, ba) %>%
   mutate(outlier_vis = ifelse((outlier != "ME") & (outlier != "CA") & (outlier != "SD") &
                               (outlier != "AK") & (outlier != "HI") & (outlier != "NM") &
                               (outlier != "ID"), NA, state_id)) %>% 
-  mutate(outlier_vis2 = ifelse((is.na(outlier_vis)), 0, 1))
-
-ggplot(data_ba) +
-  geom_boxplot(aes(year, ba, group = year)) +
-  scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
-  theme(axis.title = element_blank(), 
-        legend.position = "none") +
-  geom_point(aes(year, outlier2, colour = factor(outlier_vis2))) +
-  scale_colour_manual(values = c("grey", "black")) +
-  geom_text_repel(aes(year, outlier2, label = outlier_vis), size = 2, nudge_x = .15) +
-  scale_y_continuous(labels = scales::percent) +
-  ggtitle("Figure 5 - Basic Assistance Expenditures as a Percentage of Total 
-TANF Expenditures (FY 1998 - 2013)")
+  mutate(outlier_vis2 = ifelse((is.na(outlier_vis)), 0, 1)) %>% 
+  ggplot() +
+    geom_boxplot(aes(year, ba, group = year)) +
+    scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
+    theme(axis.title = element_blank(), 
+          legend.position = "none") +
+    geom_point(aes(year, outlier2, colour = factor(outlier_vis2))) +
+    scale_colour_manual(values = c("grey", "black")) +
+    geom_text_repel(aes(year, outlier2, label = outlier_vis), size = 2, nudge_x = .15) +
+    scale_y_continuous(labels = scales::percent) +
+    ggtitle("Figure 5 - Basic Assistance Expenditures as a Percentage of Total\nTANF Expenditures (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure5.pdf", height = 5, width = 6.5, units = "in")
 
-data_ba <- data_ba %>%
-  select(STATE, year, ba) 
-data_ba <- spread(data_ba, year, ba)
-sd_ba <- data_frame(year = c("1998", "1999", "2000", "2001", "2002", "2003", "2004",
-                                "2005", "2006", "2007", "2008", "2009", "2010", 
-                                "2011", "2012", "2013"), sd = sapply(data_ba[, 2:17], sd, na.rm = TRUE))
+# standard deviations for basic assistance
+sd_ba <- avg_props_id %>%
+  select(STATE, year, ba) %>% 
+  spread(year, ba) %>% 
+  select(-STATE) %>% 
+  sapply(sd, na.rm = TRUE)
 
 # Note: The "missing value" warnings in the boxplot code stem from outlier labelling.
 
@@ -409,11 +400,6 @@ stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
 
 
 
-# Code for claim about liberalism in section VI ####                  
-fargo <- select(ind_data, STATE, year, liberalism) %>% 
-  group_by(STATE) %>% 
-  summarise(sd = sd(liberalism, na.rm = TRUE)) %>%
-  ungroup()
-mean(fargo$sd, na.rm = TRUE)
+               
 
   
