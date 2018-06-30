@@ -16,7 +16,28 @@ case_raw <- as.data.frame(map(files, readR)) %>%
   gather(key = "category", value = "value", -State) %>% 
   mutate(category = str_replace(category, "X", "")) %>% 
   mutate(value = floor(value)) %>% 
-  separate(category, c("year", "category"), "_")
+  separate(category, c("year", "category"), "_") %>% 
+  group_by(year, category) %>% 
+  mutate(us_total = sum(value)) %>% 
+  ungroup()
+
+case_raw %>% 
+  filter(State == "Alabama") %>% 
+  filter(year != "2014") %>% 
+  filter(category == "families" | category == "0.families") %>% 
+  ggplot(aes(year, us_total, group = category, color = category)) +
+  geom_line() +
+  labs(y = "Number of Families", title = "Figure 1 - Number of TANF Families in the Average Month (CY 1998-2013)") +
+  scale_colour_manual(labels = c("Child-only families", "All families"), name = element_blank(), 
+                        guide = guide_legend(reverse = TRUE), 
+                      values = c("grey", "black")) +  
+  scale_x_discrete(breaks = c("2000", "2005", "2010")) + 
+  theme(axis.title.x = element_blank()) +
+  scale_y_continuous(labels = scales::comma, limits = c(0, 3100000)) 
+
+
+
+
 
 case_totals <- case_raw %>% 
   filter(category == "families") %>% 
@@ -26,11 +47,24 @@ case_raw <- left_join(case_raw, case_totals, c("State", "year"))
 anti_join(case_raw, case_totals, c("State", "year"))
 
 case_raw <- case_raw %>% 
-  filter(category != "families") %>% 
   mutate(prop = value/total) %>% 
   group_by(year, category) %>% 
   mutate(avg_prop = mean(prop)) %>% 
   mutate(avg_raw = mean(value)) 
+
+# Total and child only caseloads 
+
+case_raw %>% 
+  filter(State == "Alabama") %>% 
+  filter(category == "0.families") %>% 
+  ggplot() +
+  geom_line(aes(year, avg_raw)) +
+  geom_line(aes(year, total))
+
+
+
+
+
 
 # Average Monthly TANF Families by Family Type ####
 case_raw %>% 
@@ -113,9 +147,31 @@ child_only <- case_raw %>%
 
 stargazer(lm(prop_2014 ~ prop_98, data = child_only),
           out = "Figures and Tables/Caseload_5.html")
+# Top ten and bottom ten ####
+top_ten_case <- case_raw %>% 
+  filter(category == "0.families") %>% 
+  filter(year == 1998) %>%
+  arrange(desc(prop)) %>% 
+  top_n(10, prop)
 
+bottom_ten_case <- case_raw %>% 
+  filter(category == "0.families") %>%  
+  filter(year == 1998) %>%
+  arrange(desc(prop)) %>% 
+  top_n(-10, prop)
 
-
-
-
-
+case_raw %>% 
+  ungroup() %>% 
+  filter(category == "0.families") %>% 
+  filter(year == 1998 | year == 2013) %>% 
+  mutate(year = as.factor(year)) %>% 
+  mutate(rank = as.factor(ifelse(State %in% top_ten_case$State, 1, 
+                                 ifelse(State %in% bottom_ten_case$State, 2, 0)))) %>%
+  ggplot(aes(year, prop, group = State, color = rank)) +
+  geom_line() +
+  geom_point() +
+  scale_y_continuous(labels = scales::percent, name = element_blank()) +
+  scale_x_discrete(name = element_blank()) +
+  scale_color_manual(values = c("#cccccc", "#666666", "#000000"), name = element_blank(), breaks = c(1, 2),  
+                     labels = c("Ten states with the highest percentage\nof child only TANF units in 1998", "Ten states with the lowest percentage\nof child only TANF units in 1998")) +
+  labs(title = "Child only TANF Units as a Percentage\nof Total TANF Caseloads in 1998 and 2013")

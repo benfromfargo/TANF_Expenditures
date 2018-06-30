@@ -59,45 +59,38 @@ props_avg <- props_avg %>%
   select(-total) %>% 
   spread(category, value)
 
-# Checks ####
-check_data <- function(data) {
-  data %>% 
-    gather(key = "category", value = "value", -STATE, -year) %>% 
-    select(STATE, category, year, value) %>%
-    unite(category, category, year, sep = "_") %>% 
-    spread(key = "category", value = "value")
+# Figure 1 - Number of TANF Families in the Average Month ####
+
+files <- list.files("Caseloads/")
+files <- str_c("Caseloads/", files)
+
+readR <- function(file) {
+  read_xls(file)
 }
 
-check_data(props) %>% 
-  write_csv("Checks/props.csv")
-check_data(avg_props) %>% 
-  write_csv("Checks/avg_props.csv")
-check_data(props_avg) %>% 
-  write_csv("Checks/props_avg.csv")
+case_raw <- as.data.frame(map(files, readR)) %>% 
+  select(-contains("State.")) %>% 
+  gather(key = "category", value = "value", -State) %>% 
+  mutate(category = str_replace(category, "X", "")) %>% 
+  mutate(value = floor(value)) %>% 
+  separate(category, c("year", "category"), "_") %>% 
+  filter(State == "us_total") %>% 
+  filter(year != "2014")
 
-# NA count checks
-count_na <- function(data) {
-  na_count <- aggregate(data, list(data$year), function(y) sum(is.na(y))) %>% 
-    select(-STATE, -year) %>% 
-    rename(year = `Group.1`)
-}
+case_raw %>% 
+  filter(category == "families" | category == "0.families") %>% 
+  ggplot(aes(year, value, group = category, color = category)) +
+  geom_line() +
+  labs(y = "Number of Families", title = "Figure 1 - Number of TANF Families in the Average Month (CY 1998 - 2013)") +
+  scale_colour_manual(labels = c("Child-only families", "All families"), name = element_blank(), 
+                      guide = guide_legend(reverse = TRUE), 
+                      values = c("#666666", "#000000")) +  
+  scale_x_discrete(breaks = c("2000", "2005", "2010")) + 
+  theme(axis.title.x = element_blank()) +
+  scale_y_continuous(labels = scales::comma, limits = c(0, 3100000)) 
+ggsave("Figures and Tables/Figure1.pdf", height = 5, width = 6.5, units = "in")  
 
-na_count_props <- count_na(props)
-na_count_avg_props <- count_na(avg_props)
-na_count_props_avg <- count_na(props_avg)
-
-wb2 <- createWorkbook()
-addWorksheet(wb2, "props")
-addWorksheet(wb2, "avg_props")
-addWorksheet(wb2, "props_avg")
-
-writeData(wb2, "props", na_count_props)
-writeData(wb2, "avg_props", na_count_avg_props)
-writeData(wb2, "props_avg", na_count_props_avg)
-
-saveWorkbook(wb2, "Checks/TANF_na_check.xlsx")
-
-# Figure 1 - Annual Mean Expenditures ####
+# Figure 2 - Annual Mean Expenditures ####
 ann_means <- aggregate(avg_props[, 3:12], list(avg_props$year), mean, na.rm = TRUE) %>% 
   rename(year = `Group.1`) 
 ann_means <- gather(ann_means, key = "category", value = "value", -year)
@@ -117,8 +110,8 @@ ann_means %>%
   scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
   scale_y_continuous(name = "", labels = scales::percent, limits = c(0, .6)) +
   theme(strip.text.y = element_text(angle = 0)) +
-  ggtitle("Figure 1 - Mean TANF Expenditures as a Percentage of Total\nExpenditures by Category (FY 1998 - 2013)")
-ggsave("Figures and Tables/Figure1.pdf", height = 5, width = 6.5, units = "in")  
+  ggtitle("Figure 2 - Mean TANF Expenditures as a Percentage of Total\nExpenditures by Category (FY 1998 - 2013)")
+ggsave("Figures and Tables/Figure2.pdf", height = 5, width = 6.5, units = "in")  
 
 ann_means %>% 
     filter(category == "pregnancy" | category == "other" | category == "tax" 
@@ -135,10 +128,10 @@ ann_means %>%
   scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
   scale_y_continuous(name = "", labels = scales::percent, limits = c(0, .6)) +
   theme(strip.text.y = element_text(angle = 0)) +
-  ggtitle("Figure 1 (continued) - Mean TANF Expenditures as a Percentage of Total\nExpenditures by Category (FY 1998 - 2013)")
-ggsave("Figures and Tables/Figure1_continued.pdf", height = 5, width = 6.5, units = "in")
+  ggtitle("Figure 2 (continued) - Mean TANF Expenditures as a Percentage of Total\nExpenditures by Category (FY 1998 - 2013)")
+ggsave("Figures and Tables/Figure2_continued.pdf", height = 5, width = 6.5, units = "in")
 
-# Figure 2 - Marriage and Pregnancy Prevention Boxplot ####
+# Figure 3 - Marriage and Pregnancy Prevention Boxplot ####
 
 # New dataframe with state abbreivations for boxplots
 s_abbvs <- c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", 
@@ -171,8 +164,8 @@ avg_props_id %>%
       scale_colour_manual(values = c("grey", "black")) +
       geom_text_repel(aes(year, outlier2, label = outlier_vis), size = 2, nudge_x = .15) +
       scale_y_continuous(labels = scales::percent) +
-      ggtitle("Figure 2 - Marriage and Pregnancy Prevention Expenditures as a\nPercentage of Total TANF Expenditures (FY 1998 - 2013)")
-ggsave("Figures and Tables/Figure2.pdf", height = 5, width = 6.5, units = "in")
+      ggtitle("Figure 3 - Marriage and Pregnancy Prevention Expenditures as a\nPercentage of Total TANF Expenditures (FY 1998 - 2013)")
+ggsave("Figures and Tables/Figure3.pdf", height = 5, width = 6.5, units = "in")
 
 # standard deviations for marriage and pregnancy programs
 sd_pregnancy <- avg_props_id %>% 
@@ -181,7 +174,7 @@ sd_pregnancy <- avg_props_id %>%
   select(-STATE) %>% 
   sapply(sd, na.rm = TRUE)
 
-# Figure 3 - Refundable Tax Credits Boxplot #### 
+# Figure 4 - Refundable Tax Credits Boxplot #### 
 avg_props_id %>% 
   select(state_id:year, tax) %>%
   group_by(year) %>% 
@@ -201,8 +194,8 @@ avg_props_id %>%
     geom_text_repel(aes(year, outlier2, label = outlier_vis), size = 2, nudge_x = .15) +
     scale_colour_manual(values = c("grey", "black")) +
     scale_y_continuous(labels = scales::percent) +
-    ggtitle("Figure 3 - Refundable Tax Credit Expenditures as a Percentage of\nTotal TANF Expenditures (FY 1998 - 2013)")
-ggsave("Figures and Tables/Figure3.pdf", height = 5, width = 6.5, units = "in")
+    ggtitle("Figure 4 - Refundable Tax Credit Expenditures as a Percentage of\nTotal TANF Expenditures (FY 1998 - 2013)")
+ggsave("Figures and Tables/Figure4.pdf", height = 5, width = 6.5, units = "in")
 
 # standard deviations for refundable tax credit programs
 sd_tax <- avg_props_id %>%
@@ -211,7 +204,7 @@ sd_tax <- avg_props_id %>%
   select(-STATE) %>% 
   sapply(sd, na.rm = TRUE)
 
-# Figure 4 - Other Non-Assistance Boxplot ####
+# Figure 5 - Other Non-Assistance Boxplot ####
 avg_props_id %>% 
   select(state_id:year, other) %>%
   group_by(year) %>% 
@@ -231,8 +224,8 @@ avg_props_id %>%
     scale_colour_manual(values = c("grey", "black")) +
     geom_text_repel(aes(year, outlier2, label = outlier_vis), size = 2, nudge_x = .15) +
     scale_y_continuous(labels = scales::percent) +
-    ggtitle("Figure 4 - Other Non-Assistance Expenditures as a Percentage of\nTotal TANF Expenditures (FY 1998 - 2013)")
-ggsave("Figures and Tables/Figure4.pdf", height = 5, width = 6.5, units = "in")
+    ggtitle("Figure 5 - Other Non-Assistance Expenditures as a Percentage of\nTotal TANF Expenditures (FY 1998 - 2013)")
+ggsave("Figures and Tables/Figure5.pdf", height = 5, width = 6.5, units = "in")
 
 # standard deviations 
 sd_other <- avg_props_id %>%
@@ -241,7 +234,7 @@ sd_other <- avg_props_id %>%
   select(-STATE) %>% 
   sapply(sd, na.rm = TRUE)
 
-# Figure 5 - Basic Assistance Boxplot ####
+# Figure 6 - Basic Assistance Boxplot ####
 avg_props_id %>% 
   select(state_id:year, ba) %>%
   group_by(year) %>% 
@@ -263,8 +256,8 @@ avg_props_id %>%
     scale_colour_manual(values = c("grey", "black")) +
     geom_text_repel(aes(year, outlier2, label = outlier_vis), size = 2, nudge_x = .15) +
     scale_y_continuous(labels = scales::percent) +
-    ggtitle("Figure 5 - Basic Assistance Expenditures as a Percentage of Total\nTANF Expenditures (FY 1998 - 2013)")
-ggsave("Figures and Tables/Figure5.pdf", height = 5, width = 6.5, units = "in")
+    ggtitle("Figure 6 - Basic Assistance Expenditures as a Percentage of Total\nTANF Expenditures (FY 1998 - 2013)")
+ggsave("Figures and Tables/Figure6.pdf", height = 5, width = 6.5, units = "in")
 
 # standard deviations for basic assistance
 sd_ba <- avg_props_id %>%
@@ -274,17 +267,6 @@ sd_ba <- avg_props_id %>%
   sapply(sd, na.rm = TRUE)
 
 # Note: The "missing value" warnings in the boxplot code stem from outlier labelling.
-
-# Figure 6 - TANF Caseload Line Plot ####
-case_data <- read_xlsx("Input Data/TANF_Figure6_caseloads.xlsx")
-
-ggplot(case_data) +
-  geom_line(aes(Year, Caseload)) +
-  ggtitle("Figure 6 - Average Monthly TANF recipients (1998 - 2013)") +
-  theme(axis.title.x = element_blank()) +
-  ylab("TANF recipients (millions)") +
-  scale_y_continuous(limits = c(0,9), breaks = seq(0,9,2))
-ggsave("Figures and Tables/Figure6.pdf", height = 4, width = 6, units = "in")
 
 # Clean Independent Variables #####
 ind_data <- read_excel("Input Data/TANF_ind-variables.xlsx", sheet = "Ind. Variables - FINAL", na = "NA")
@@ -403,3 +385,70 @@ stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
                
 
   
+# Figure 7 - Top and bottom ten ####
+top_ten <- avg_props_id %>% 
+  filter(year == 1998) %>%
+  arrange(desc(ba)) %>% 
+  top_n(10, ba)
+
+bottom_ten <- avg_props_id %>% 
+  filter(year == 1998) %>%
+  arrange(desc(ba)) %>% 
+  top_n(-10, ba)
+
+avg_props_id %>% 
+  filter(year == 1998 | year == 2013) %>%
+  mutate(year = as.factor(year)) %>%
+  mutate(rank = as.factor(ifelse(state_id %in% top_ten$state_id, 1, 
+                                 ifelse(state_id %in% bottom_ten$state_id, 2, 0)))) %>%
+  ggplot(aes(year, ba, group = state_id, color = rank)) +
+  geom_line() +
+  geom_point() +
+  scale_y_continuous(labels = scales::percent, name = element_blank()) +
+  scale_x_discrete(name = element_blank()) +
+  scale_color_manual(values = c("#cccccc", "#666666", "#000000"), name = element_blank(), breaks = c(1, 2),  
+  labels = c("Ten highest spending\nstates in 1998", "Ten lowest spending\nstates in 1998")) +
+  labs(title = "Figure 7 - Basic Assistance Expenditures as a Proportion\nof Total TANF Expenditures in 1998 and 2013")
+ggsave("Figures and Tables/Figure7.pdf", height = 5, width = 6.5, units = "in")
+
+
+
+
+
+# Checks ####
+check_data <- function(data) {
+  data %>% 
+    gather(key = "category", value = "value", -STATE, -year) %>% 
+    select(STATE, category, year, value) %>%
+    unite(category, category, year, sep = "_") %>% 
+    spread(key = "category", value = "value")
+}
+
+check_data(props) %>% 
+  write_csv("Checks/props.csv")
+check_data(avg_props) %>% 
+  write_csv("Checks/avg_props.csv")
+check_data(props_avg) %>% 
+  write_csv("Checks/props_avg.csv")
+
+# NA count checks
+count_na <- function(data) {
+  na_count <- aggregate(data, list(data$year), function(y) sum(is.na(y))) %>% 
+    select(-STATE, -year) %>% 
+    rename(year = `Group.1`)
+}
+
+na_count_props <- count_na(props)
+na_count_avg_props <- count_na(avg_props)
+na_count_props_avg <- count_na(props_avg)
+
+wb2 <- createWorkbook()
+addWorksheet(wb2, "props")
+addWorksheet(wb2, "avg_props")
+addWorksheet(wb2, "props_avg")
+
+writeData(wb2, "props", na_count_props)
+writeData(wb2, "avg_props", na_count_avg_props)
+writeData(wb2, "props_avg", na_count_props_avg)
+
+saveWorkbook(wb2, "Checks/TANF_na_check.xlsx")
