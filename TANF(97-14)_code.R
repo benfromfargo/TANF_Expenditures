@@ -81,14 +81,32 @@ case_raw %>%
   filter(category == "families" | category == "0.families") %>% 
   ggplot(aes(year, value, group = category, color = category)) +
   geom_line() +
-  labs(y = "Number of Families", title = "Figure 1 - Number of TANF Families in the Average Month (CY 1998 - 2013)") +
+  labs(title = "Figure 1 - Number of TANF Families in an Average Month\n(CY 1998 - 2013)") +
   scale_colour_manual(labels = c("Child-only families", "All families"), name = element_blank(), 
                       guide = guide_legend(reverse = TRUE), 
                       values = c("#666666", "#000000")) +  
   scale_x_discrete(breaks = c("2000", "2005", "2010")) + 
-  theme(axis.title.x = element_blank()) +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
   scale_y_continuous(labels = scales::comma, limits = c(0, 3100000)) 
 ggsave("Figures and Tables/Figure1.pdf", height = 5, width = 6.5, units = "in")  
+
+# Figure 2 - Aggregate Reported TANF Expenditures on Basic Assistance ####
+raw_data %>%
+  group_by(category, year) %>% 
+  filter(!(year %in% c("1997", "2014"))) %>% 
+  mutate(category_total = sum(value)) %>% 
+  ungroup() %>% 
+  filter(category == "ba") %>% 
+  ggplot(aes(year, category_total, group = category)) +
+  geom_line() +
+  labs(title = "Figure 2 - Aggregate Reported TANF Expenditures on Basic Assistance\n(FY 1998 - 2013)", 
+       subtitle = "(In billions of dollars, not adjusted for inflation)") +
+  scale_x_discrete(breaks = c("2000", "2005", "2010")) + 
+  scale_y_continuous(breaks = seq(8000000000, 14000000000, 2000000000), 
+                     limits = c(8000000000, 14000000000),
+                      labels = c("$8", "$10", "$12", "$14")) +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank())
+ggsave("Figures and Tables/Figure2.pdf", height = 5, width = 6.5, units = "in")  
 
 # Figure 2 - Annual Mean Expenditures ####
 ann_means <- aggregate(avg_props[, 3:12], list(avg_props$year), mean, na.rm = TRUE) %>% 
@@ -130,6 +148,28 @@ ann_means %>%
   theme(strip.text.y = element_text(angle = 0)) +
   ggtitle("Figure 2 (continued) - Mean TANF Expenditures as a Percentage of Total\nExpenditures by Category (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure2_continued.pdf", height = 5, width = 6.5, units = "in")
+
+# Figure 2 in one graph
+ann_means %>% 
+  mutate(category = case_when(
+    category == "pregnancy" ~ "Marriage and Pregnancy\nPrograms",
+    category == "other" ~ "Other Non-Assistance", 
+    category == "tax" ~ "Refundable\nTax Credits",
+    category == "ssbg" ~ "Social Services\nBlock Grant", 
+    category == "work" ~ "Work Related Activities\nand Supports",
+    category == "admin" ~ "Administration\nand Systems",
+    category == "ba" ~ "Basic Assistance", 
+    category == "cc" ~ "Child Care",
+    category == "shortben" ~ "Diversion Benefits",
+    category == "prior" ~ "Expenditures Under\nPrior Law")) %>% 
+  ggplot(aes(year, value)) +
+  geom_col() +
+  facet_grid(category ~.) +
+  scale_x_discrete(name = "", breaks = c("2000", "2005", "2010")) +
+  scale_y_continuous(name = "", labels = scales::percent, limits = c(0, .6), breaks = c(.2, .4, .6)) +
+  theme(strip.text.y = element_text(angle = 0)) +
+  ggtitle("Figure 2 - Mean TANF Expenditures as a Percentage of Total\nExpenditures by Category (FY 1998 - 2013)")
+ggsave("Figures and Tables/Figure2.2_continued.pdf", height = 5, width = 6.5, units = "in")
 
 # Figure 3 - Marriage and Pregnancy Prevention Boxplot ####
 
@@ -386,31 +426,6 @@ stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
 
   
 # Figure 7 - Top and bottom ten ####
-top_ten <- avg_props_id %>% 
-  filter(year == 1998) %>%
-  arrange(desc(ba)) %>% 
-  top_n(10, ba)
-
-bottom_ten <- avg_props_id %>% 
-  filter(year == 1998) %>%
-  arrange(desc(ba)) %>% 
-  top_n(-10, ba)
-
-avg_props_id %>% 
-  filter(year == 1998 | year == 2013) %>%
-  mutate(year = as.factor(year)) %>%
-  mutate(rank = as.factor(ifelse(state_id %in% top_ten$state_id, 1, 
-                                 ifelse(state_id %in% bottom_ten$state_id, 2, 0)))) %>%
-  ggplot(aes(year, ba, group = state_id, color = rank)) +
-  geom_line() +
-  geom_point() +
-  scale_y_continuous(labels = scales::percent, name = element_blank()) +
-  scale_x_discrete(name = element_blank()) +
-  scale_color_manual(values = c("#cccccc", "#666666", "#000000"), name = element_blank(), breaks = c(1, 2),  
-  labels = c("Ten highest spending\nstates in 1998", "Ten lowest spending\nstates in 1998")) +
-  labs(title = "Figure 7 - Basic Assistance Expenditures as a Proportion\nof Total TANF Expenditures in 1998 and 2013")
-ggsave("Figures and Tables/Figure7.pdf", height = 5, width = 6.5, units = "in")
-
 
 
 
