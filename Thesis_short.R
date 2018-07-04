@@ -426,6 +426,40 @@ stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
 
   
 # Figure 7 - Top and bottom ten ####
+top_ten <- avg_props_id %>% 
+  filter(year == 1998) %>%
+  top_n(10, ba)
+
+bottom_ten <- avg_props_id %>% 
+  filter(year == 1998) %>%
+  top_n(-10, ba)
+
+fig <- avg_props_id %>% 
+  filter(year == 1998 | year == 2013) %>%
+  filter(!is.na(ba)) %>% 
+  mutate(year = as.factor(year)) %>%
+  mutate(rank = as.factor(ifelse(state_id %in% top_ten$state_id, 1, 
+                                 ifelse(state_id %in% bottom_ten$state_id, 2, 0)))) %>%
+  mutate(plot_id = ifelse((rank == 2 | rank == 1) & year == 2013, state_id, NA)) %>% 
+  mutate(plot_ba = ifelse(!is.na(plot_id), ba, 0))
+
+fig_labs <- filter(fig, !is.na(plot_id))
+
+ggplot(fig, aes(year, ba, group = state_id, color = rank)) +
+  geom_line() +
+  geom_point() +
+  scale_y_continuous(labels = scales::percent, name = element_blank()) +
+  scale_x_discrete(name = element_blank()) +
+  geom_text_repel(data = fig_labs, aes(label = plot_id), size = 2,
+                  nudge_x = ifelse(fig_labs$plot_ba > .3, .1, .3),
+                  nudge_y = ifelse(fig_labs$plot_ba > .3, 0, 
+                                   ifelse((fig_labs$plot_ba > .2) & (fig_labs$plot_ba <= .3), .04,
+                                          ifelse(fig_labs$plot_ba <= .2, -.035, 0)))) +
+  scale_color_manual(values = c("#cccccc", "#666666", "#000000"), name = element_blank(), breaks = c(1, 2),  
+  labels = c("Ten highest spending\nstates in 1998", "Ten lowest spending\nstates in 1998")) +
+  labs(title = "Figure 7 - Basic Assistance Expenditures as a Proportion\nof Total TANF Expenditures in 1998 and 2013")
+ggsave("Figures and Tables/Figure7.pdf", height = 5, width = 6.5, units = "in")
+
 
 
 
