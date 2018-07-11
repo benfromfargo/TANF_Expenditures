@@ -81,8 +81,9 @@ case_raw %>%
   filter(category == "families" | category == "0.families") %>% 
   ggplot(aes(year, value, group = category, color = category)) +
     geom_line() +
-    labs(title = "Figure 1 - Number of TANF Families in an Average Month",
-         subtitle = "CY 1998 - 2013") +
+    labs(title = "Figure 1 - Families Receiving TANF Assistance in an Average Month",
+         subtitle = "CY 1998 - 2013",
+         caption = "In millions of families") +
     scale_colour_manual(labels = c("Child-only families", "All families"), 
                         name = element_blank(), 
                         guide = guide_legend(reverse = TRUE), 
@@ -90,8 +91,8 @@ case_raw %>%
     scale_x_discrete(breaks = c("2000", "2005", "2010")) + 
     theme(axis.title.x = element_blank(), 
           axis.title.y = element_blank()) +
-    scale_y_continuous(labels = scales::comma, 
-                       limits = c(0, 3100000)) 
+    scale_y_continuous(breaks = c(1000000, 1500000, 2000000, 2500000, 3000000),
+                       labels = c("1", "1.5", "2", "2.5", "3"))
 ggsave("Figures and Tables/Figure1.pdf", height = 5, width = 6.5, units = "in")  
 
 # Figure 2 - Aggregate Reported TANF Expenditures on Basic Assistance ####
@@ -189,7 +190,52 @@ ann_means %>%
   ggtitle("Figure 2 - Mean TANF Expenditures as a Percentage of Total\nExpenditures by Category (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure3.2_continued.pdf", height = 5, width = 6.5, units = "in")
 
+# Figure 3.1 Annual Mean Expenditures ####
+
+# Create 
+ann_means_vis <- spread(ann_means, key = "category", value = "value")
+
+ann_means_vis <- ann_means_vis %>%
+  mutate(service = (ann_means_vis$cc + ann_means_vis$pregnancy +
+                       ann_means_vis$shortben + ann_means_vis$tax +
+                       ann_means_vis$work)) %>% 
+  mutate(other2 = (ann_means_vis$admin + ann_means_vis$other +
+                     ann_means_vis$prior + ann_means_vis$ssbg)) %>% 
+  select(year, ba, service, other = other2)
+
+ann_means_vis <- gather(ann_means_vis, key = "category", value = "value", -year)
+
+ann_means_vis <- ann_means_vis %>% 
+  mutate(category = factor(ann_means_vis$category, levels = c("other", "service", "ba")))
+  
+ggplot(ann_means_vis, aes(year, value, fill = category)) +
+  geom_col() +
+  scale_x_discrete(name = "", 
+                   breaks = c("2000", "2005", "2010")) +
+  scale_y_continuous(name = "", 
+                     labels = scales::percent,
+                     expand = c(0,.02)) +
+  scale_fill_manual(values = c("#cccccc", "#666666", "#000000")) +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank()) +
+  labs(title = "Figure 3 - Mean TANF Expenditures as a Percentage of Total Expenditures by Category",
+       subtitle = "FY 1998 - 2013")
+
+
+
 # Figure 4 - Basic Assistance Boxplot ####
+avg_props_id <- avg_props %>% 
+  arrange(desc(year)) %>% 
+  mutate(state_id = rep_len(c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", 
+                              "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+                              "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", 
+                              "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI",
+                              "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI",
+                              "WY"),
+                            length.out = 816)) %>%
+  select(state_id, STATE, everything())
+
 avg_props_id %>% 
   select(state_id:year, ba) %>%
   group_by(year) %>% 
@@ -225,6 +271,7 @@ ind_data <- gather(ind_data, key = category, value = value, -STATE) %>%
 ind_data <- mutate(ind_data, year = as.numeric(year) + 1) %>% 
   filter(!year == 2014 & !year == 2015) %>% 
   mutate(year = as.character(year))
+
 ind_data <- spread(ind_data, key = category, value = value)
 
 # Bind expenditure data to independent variables
@@ -288,6 +335,28 @@ stargazer(p1, p2, p3, p4,
           model.numbers = FALSE,
           initial.zero = FALSE,
           out = "Figures and Tables/Table1.html")
+
+# Figure 8 - Coefficients of Time Fixed Effects from Model 4 ####
+time_effects <- data.frame(summary(p4)["coefficients"])
+time_effects <- rownames_to_column(time_effects, "year") 
+
+time_effects <- time_effects %>% 
+  filter((str_detect(time_effects$year, "factor"))) %>% 
+  mutate(year = 1999:2013)
+
+time_effects %>% 
+  ggplot() +
+  geom_point(aes(x = year, y = coefficients.Estimate)) +
+  geom_errorbar(aes(x = year,
+                    ymin = coefficients.Estimate - 1.96*coefficients.Std..Error,
+                    ymax = coefficients.Estimate + 1.96*coefficients.Std..Error)) +
+  labs(title = "Figure 8 - Coefficients of Time Fixed Effects from Model 4",
+       subtitle = "FY 1999 - 2013",
+       caption = "Error bars represent 95% confidence intervals") +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank())
+ggsave("Figures and Tables/Figure8.pdf", height = 5, width = 6.5, units = "in")
+
 
 # Tables A.2 and A.3 - Annual Mean and Median Tables ####
 aggregate(avg_props[, 3:12], list(avg_props$year), mean, na.rm = TRUE) %>% 
@@ -374,7 +443,7 @@ ggplot(aes(year, ba, group = state_id, color = rank, alpha = rank)) +
   scale_alpha_manual(values = c(.4, .8, .8),
                      guide = "none") +
   labs(title = "Figure 7 - Basic Assistance Spending as a Percentage of Total Spending",
-       subtitle = "(FY 1998 and 2013)",
+       subtitle = "FY 1998 and 2013",
        caption = "South Carolina and Tennessee removed due to negative reported basic assistance expenditures in FY 1998. See appendix.") +
   theme(plot.caption=element_text(size=6))
 ggsave("Figures and Tables/Figure7.pdf", height = 5, width = 6.6, units = "in")
@@ -431,3 +500,10 @@ writeData(wb2, "props_avg", na_count_props_avg)
 
 saveWorkbook(wb2, "Checks/TANF_na_check.xlsx")
   
+
+
+
+
+
+
+

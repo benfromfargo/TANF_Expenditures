@@ -174,16 +174,15 @@ ggsave("Figures and Tables/Figure2.2_continued.pdf", height = 5, width = 6.5, un
 # Figure 3 - Marriage and Pregnancy Prevention Boxplot ####
 
 # New dataframe with state abbreivations for boxplots
-s_abbvs <- c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", 
-             "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
-             "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", 
-             "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI",
-             "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI",
-             "WY")
-
 avg_props_id <- avg_props %>% 
   arrange(desc(year)) %>% 
-  mutate(state_id = rep_len(s_abbvs, length.out = 816)) %>%
+  mutate(state_id = rep_len(c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", 
+                              "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+                              "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", 
+                              "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI",
+                              "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI",
+                              "WY"),
+                            length.out = 816)) %>%
   select(state_id, STATE, everything())
 
 avg_props_id %>% 
