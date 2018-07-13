@@ -192,7 +192,6 @@ ggsave("Figures and Tables/Figure3.2_continued.pdf", height = 5, width = 6.5, un
 
 # Figure 3.1 Annual Mean Expenditures ####
 
-# Create 
 ann_means_vis <- spread(ann_means, key = "category", value = "value")
 
 ann_means_vis <- ann_means_vis %>%
@@ -215,12 +214,48 @@ ggplot(ann_means_vis, aes(year, value, fill = category)) +
   scale_y_continuous(name = "", 
                      labels = scales::percent,
                      expand = c(0,.02)) +
-  scale_fill_manual(values = c("#cccccc", "#666666", "#000000")) +
+  scale_fill_manual(values = c("#cccccc", "#666666", "#000000"),
+                    labels = c("Other", 
+                              "Aid that is not basic assistance", 
+                              "Basic assistance"),
+                    name = "Type of Spending") +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.background = element_blank()) +
-  labs(title = "Figure 3 - Mean TANF Expenditures as a Percentage of Total Expenditures by Category",
-       subtitle = "FY 1998 - 2013")
+        panel.background = element_blank(),
+        plot.caption = element_text(hjust = 0,
+                                    size = 6)) +
+  labs(title = "Figure 3 - Mean TANF Spending as Percentage of Total Expenditures",
+       subtitle = "FY 1998 - 2013",
+       caption = "\"Other\" includes administration and systems, expenditures under prior law, other non-assistance, and social services block grant categories;
+\"Aid that is not basic assistance\" includes child care, marriage and pregnancy programs, diversion benefits, refundable tax credits, 
+and work-related activities and supports categories. The percentages in Figure 1 may not add up to 100% in a given fiscal year due to the removal of 
+outlier values (i.e., proportional expenditure values that remained above 100% or below 0% after calculating moving averages). 
+See Table A.2 in the Appendix for a complete list of annual mean expenditures by year and category.")
+ggsave("Figures and Tables/Figure3.1.pdf", height = 5, width = 6.6, units = "in")  
+
+# New plot on aid that is not basic assistance ####
+x <- ann_means %>% 
+  filter(category != "ba" & category != "admin" & category != "other" & category != "prior" & category != "ssbg") %>%
+  mutate(label = ifelse(year == "2013", category, NA)) %>% 
+  mutate(label = case_when(
+  label == "cc" ~ "    Child care",
+  label == "work" ~ "    Work-related\n    activities and supports", 
+  label == "pregnancy" ~ "    Marriage and pregnancy programs",
+  label == "tax" ~ "    Refundable tax credits", 
+  label == "shortben" ~ "    Diversion benefits")) %>% 
+  ggplot(aes(year, value, group = category)) +
+  geom_line() +
+  scale_x_discrete(label = scales::percent)
+  geom_text(aes(label = label),
+                  na.rm = TRUE,
+                  hjust = 0) +
+  theme(plot.margin = unit(c(2,12,2,2), "lines")) 
+
+gt <- ggplotGrob(x)
+gt$layout$clip[gt$layout$name == "panel"] <- "off"
+grid.draw(gt)
+ggsave("Figures and Tables/Figure_new.pdf", gt, height = 5, width = 6.6, units = "in")
+
 
 
 
