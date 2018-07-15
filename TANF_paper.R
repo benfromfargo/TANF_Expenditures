@@ -10,6 +10,7 @@ library(stargazer)
 library(openxlsx)
 library(readxl)
 library(stats)
+library(grid)
 
 #Remove scientific notation 
 options(scipen = 999)
@@ -115,7 +116,7 @@ raw_data %>%
           axis.title.y = element_blank())
 ggsave("Figures and Tables/Figure2.pdf", height = 5, width = 6.5, units = "in")  
 
-# Figure 3 - Annual Mean Expenditures ####
+# Figure # (old) - Annual Mean Expenditures ####
 ann_means <- aggregate(avg_props[, 3:12], list(avg_props$year), mean, na.rm = TRUE) %>% 
   rename(year = `Group.1`) 
 ann_means <- gather(ann_means, key = "category", value = "value", -year)
@@ -190,7 +191,7 @@ ann_means %>%
   ggtitle("Figure 2 - Mean TANF Expenditures as a Percentage of Total\nExpenditures by Category (FY 1998 - 2013)")
 ggsave("Figures and Tables/Figure3.2_continued.pdf", height = 5, width = 6.5, units = "in")
 
-# Figure 3.1 Annual Mean Expenditures ####
+# Figure 3 Annual Mean Expenditures ####
 
 ann_means_vis <- spread(ann_means, key = "category", value = "value")
 
@@ -231,9 +232,9 @@ ggplot(ann_means_vis, aes(year, value, fill = category)) +
 and work-related activities and supports categories. The percentages in Figure 1 may not add up to 100% in a given fiscal year due to the removal of 
 outlier values (i.e., proportional expenditure values that remained above 100% or below 0% after calculating moving averages). 
 See Table A.2 in the Appendix for a complete list of annual mean expenditures by year and category.")
-ggsave("Figures and Tables/Figure3.1.pdf", height = 5, width = 6.6, units = "in")  
+ggsave("Figures and Tables/Figure3.pdf", height = 5, width = 6.6, units = "in")  
 
-# New plot on aid that is not basic assistance ####
+# Figure 4 - Proportional Expenditures of Aid that is not Basic Assistance ####
 x <- ann_means %>% 
   filter(category != "ba" & category != "admin" & category != "other" & category != "prior" & category != "ssbg") %>%
   mutate(label = ifelse(year == "2013", category, NA)) %>% 
@@ -245,21 +246,27 @@ x <- ann_means %>%
   label == "shortben" ~ "    Diversion benefits")) %>% 
   ggplot(aes(year, value, group = category)) +
   geom_line() +
-  scale_x_discrete(label = scales::percent)
+  scale_y_continuous(labels = scales::percent,
+                     name = element_blank()) +
+  scale_x_discrete(breaks = c("2000", "2005", "2010")) +
   geom_text(aes(label = label),
                   na.rm = TRUE,
                   hjust = 0) +
-  theme(plot.margin = unit(c(2,12,2,2), "lines")) 
+  labs(title = "Figure 4 - Proportional Expenditures of Aid that is not Basic Assistance",
+          subtitle = "FY 1998 - 2013") +
+  theme(plot.margin = unit(c(2,12,2,2), "lines"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()) 
 
 gt <- ggplotGrob(x)
 gt$layout$clip[gt$layout$name == "panel"] <- "off"
 grid.draw(gt)
-ggsave("Figures and Tables/Figure_new.pdf", gt, height = 5, width = 6.6, units = "in")
+ggsave("Figures and Tables/Figure4.pdf", gt, height = 5, width = 6.6, units = "in")
 
 
 
 
-# Figure 4 - Basic Assistance Boxplot ####
+# Figure 5 - Basic Assistance Boxplot ####
 avg_props_id <- avg_props %>% 
   arrange(desc(year)) %>% 
   mutate(state_id = rep_len(c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", 
@@ -291,9 +298,9 @@ avg_props_id %>%
                     size = 2, 
                     nudge_x = .15) +
     scale_y_continuous(labels = scales::percent) +
-    labs(title = "Figure 4 - Basic Assistance Spending as a Percentage of Total Expenditures",
+    labs(title = "Figure 5 - Basic Assistance Spending as a Percentage of Total Expenditures",
          subtitle = "FY 1998 - 2013")
-ggsave("Figures and Tables/Figure4.pdf", height = 5, width = 6.6, units = "in")
+ggsave("Figures and Tables/Figure5.pdf", height = 5, width = 6.6, units = "in")
 
 # Note: The "missing value" warnings in the boxplot code stem from outlier labelling.
 
@@ -371,7 +378,7 @@ stargazer(p1, p2, p3, p4,
           initial.zero = FALSE,
           out = "Figures and Tables/Table1.html")
 
-# Figure 8 - Coefficients of Time Fixed Effects from Model 4 ####
+# Figure 7 - Coefficients of Time Fixed Effects from Model 4 ####
 time_effects <- data.frame(summary(p4)["coefficients"])
 time_effects <- rownames_to_column(time_effects, "year") 
 
@@ -385,12 +392,12 @@ time_effects %>%
   geom_errorbar(aes(x = year,
                     ymin = coefficients.Estimate - 1.96*coefficients.Std..Error,
                     ymax = coefficients.Estimate + 1.96*coefficients.Std..Error)) +
-  labs(title = "Figure 8 - Coefficients of Time Fixed Effects from Model 4",
+  labs(title = "Figure 7 - Coefficients of Time Fixed Effects from Model 4",
        subtitle = "FY 1999 - 2013",
        caption = "Error bars represent 95% confidence intervals") +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank())
-ggsave("Figures and Tables/Figure8.pdf", height = 5, width = 6.5, units = "in")
+ggsave("Figures and Tables/Figure7.pdf", height = 5, width = 6.5, units = "in")
 
 
 # Tables A.2 and A.3 - Annual Mean and Median Tables ####
@@ -437,7 +444,7 @@ stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
                
 
   
-# Figure 7 - Top and bottom ten ####
+# Figure 6 - Top and bottom ten ####
 top_ten_98 <- avg_props_id %>% 
   filter(year == 1998) %>%
   filter(!is.na(ba)) %>%
@@ -477,11 +484,11 @@ ggplot(aes(year, ba, group = state_id, color = rank, alpha = rank)) +
   labels = c("Ten highest spending\nstates in FY 1998", "Ten lowest spending\nstates in FY 1998")) +
   scale_alpha_manual(values = c(.4, .8, .8),
                      guide = "none") +
-  labs(title = "Figure 7 - Basic Assistance Spending as a Percentage of Total Spending",
+  labs(title = "Figure 6 - Basic Assistance Spending as a Percentage of Total Spending",
        subtitle = "FY 1998 and 2013",
        caption = "South Carolina and Tennessee removed due to negative reported basic assistance expenditures in FY 1998. See appendix.") +
   theme(plot.caption=element_text(size=6))
-ggsave("Figures and Tables/Figure7.pdf", height = 5, width = 6.6, units = "in")
+ggsave("Figures and Tables/Figure6.pdf", height = 5, width = 6.6, units = "in")
 
 
 # States in top ten in 13 and 98
