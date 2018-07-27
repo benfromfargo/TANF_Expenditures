@@ -81,19 +81,19 @@ case_raw <- as.data.frame(map(files, readR)) %>%
 case_raw %>% 
   filter(category == "families" | category == "0.families") %>% 
   ggplot(aes(year, value, group = category, color = category)) +
-    geom_line() +
-    labs(title = "Figure 1 - Families Receiving TANF Assistance in an Average Month",
-         subtitle = "CY 1998 - 2013",
-         caption = "In millions of families") +
-    scale_colour_manual(labels = c("Child-only families", "All families"), 
-                        name = element_blank(), 
-                        guide = guide_legend(reverse = TRUE), 
-                        values = c("#666666", "#000000")) +  
-    scale_x_discrete(breaks = c("2000", "2005", "2010")) + 
-    theme(axis.title.x = element_blank(), 
-          axis.title.y = element_blank()) +
-    scale_y_continuous(breaks = c(1000000, 1500000, 2000000, 2500000, 3000000),
-                       labels = c("1", "1.5", "2", "2.5", "3"))
+  geom_line() +
+  labs(title = "Figure 1 - Families Receiving TANF Assistance in an Average Month",
+       subtitle = "CY 1998 - 2013",
+       caption = "In millions of families") +
+  scale_colour_manual(labels = c("Child-only families", "All families"), 
+                      name = element_blank(), 
+                      guide = guide_legend(reverse = TRUE), 
+                      values = c("#666666", "#000000")) +  
+  scale_x_discrete(breaks = c("2000", "2005", "2010")) + 
+  theme(axis.title.x = element_blank(), 
+        axis.title.y = element_blank()) +
+  scale_y_continuous(breaks = c(1000000, 1500000, 2000000, 2500000, 3000000),
+                     labels = c("1", "1.5", "2", "2.5", "3"))
 ggsave("Figures and Tables/Figure1.pdf", height = 5, width = 6.5, units = "in")  
 
 # Figure 2 - Aggregate Reported TANF Expenditures on Basic Assistance ####
@@ -104,92 +104,17 @@ raw_data %>%
   ungroup() %>% 
   filter(category == "ba") %>% 
   ggplot(aes(year, category_total, group = category)) +
-    geom_line() +
-    labs(title = "Figure 2 - Aggregate Reported TANF Expenditures on Basic Assistance", 
+  geom_line() +
+  labs(title = "Figure 2 - Aggregate Reported TANF Expenditures on Basic Assistance", 
        subtitle = "FY 1998 - 2013",
        caption = "In billions of dollars, not adjusted for inflation") +
-    scale_x_discrete(breaks = c("2000", "2005", "2010")) + 
-    scale_y_continuous(breaks = seq(8000000000, 14000000000, 2000000000), 
-                      limits = c(8000000000, 14000000000),
-                      labels = c("$8", "$10", "$12", "$14")) +
-    theme(axis.title.x = element_blank(), 
-          axis.title.y = element_blank())
+  scale_x_discrete(breaks = c("2000", "2005", "2010")) + 
+  scale_y_continuous(breaks = seq(8000000000, 14000000000, 2000000000), 
+                     limits = c(8000000000, 14000000000),
+                     labels = c("$8", "$10", "$12", "$14")) +
+  theme(axis.title.x = element_blank(), 
+        axis.title.y = element_blank())
 ggsave("Figures and Tables/Figure2.pdf", height = 5, width = 6.5, units = "in")  
-
-# Figure # (old) - Annual Mean Expenditures ####
-ann_means <- aggregate(avg_props[, 3:12], list(avg_props$year), mean, na.rm = TRUE) %>% 
-  rename(year = `Group.1`) 
-ann_means <- gather(ann_means, key = "category", value = "value", -year)
-
-ann_means %>%
-  filter(category == "admin" | category == "ba" | category == "cc" | category == "shortben"
-         | category == "prior") %>%
-  mutate(category = case_when(
-    category == "admin" ~ "Administration\nand Systems",
-    category == "ba" ~ "Basic Assistance", 
-    category == "cc" ~ "Child Care",
-    category == "shortben" ~ "Diversion Benefits", 
-    category == "prior" ~ "Expenditures Under\nPrior Law")) %>% 
-  ggplot(aes(year, value)) +
-    geom_col() +
-    facet_grid(category ~.) +
-    scale_x_discrete(name = "", 
-                     breaks = c("2000", "2005", "2010")) +
-    scale_y_continuous(name = "", 
-                       labels = scales::percent, 
-                       limits = c(0, .6)) +
-    theme(strip.text.y = element_text(angle = 0)) +
-    labs(title = "Figure 3 - Mean TANF Expenditures as a Percentage of Total Expenditures by Category",
-         subtitle = "FY 1998 - 2013")
-ggsave("Figures and Tables/Figure3.pdf", height = 7, width = 9, units = "in")  
-
-ann_means %>% 
-    filter(category == "pregnancy" | category == "other" | category == "tax" 
-           | category == "ssbg" | category == "work") %>%
-  mutate(category = case_when(
-                              category == "pregnancy" ~ "Marriage and Pregnancy\nPrograms",
-                              category == "other" ~ "Other Non-Assistance", 
-                              category == "tax" ~ "Refundable\nTax Credits",
-                              category == "ssbg" ~ "Social Services\nBlock Grant", 
-                              category == "work" ~ "Work Related Activities\nand Supports")) %>% 
-  ggplot(aes(year, value)) +
-    geom_col() +
-    facet_grid(category ~.) +
-    scale_x_discrete(name = "", 
-                     breaks = c("2000", "2005", "2010")) +
-    scale_y_continuous(name = "", 
-                       labels = scales::percent, 
-                       limits = c(0, .6)) +
-    theme(strip.text.y = element_text(angle = 0)) +
-    labs(title = "Figure 3 (continued) - Mean TANF Expenditures as a Percentage of Total Expenditures by Category",
-         subtitle = "FY 1998 - 2013")
-ggsave("Figures and Tables/Figure3_continued.pdf", height = 7, width = 9, units = "in")
-
-# Figure 3 in one graph
-ann_means %>% 
-  mutate(category = case_when(
-    category == "pregnancy" ~ "Marriage and Pregnancy\nPrograms",
-    category == "other" ~ "Other Non-Assistance", 
-    category == "tax" ~ "Refundable\nTax Credits",
-    category == "ssbg" ~ "Social Services\nBlock Grant", 
-    category == "work" ~ "Work Related Activities\nand Supports",
-    category == "admin" ~ "Administration\nand Systems",
-    category == "ba" ~ "Basic Assistance", 
-    category == "cc" ~ "Child Care",
-    category == "shortben" ~ "Diversion Benefits",
-    category == "prior" ~ "Expenditures Under\nPrior Law")) %>% 
-  ggplot(aes(year, value)) +
-  geom_col() +
-  facet_grid(category ~.) +
-  scale_x_discrete(name = "", 
-                   breaks = c("2000", "2005", "2010")) +
-  scale_y_continuous(name = "", 
-                     labels = scales::percent, 
-                     limits = c(0, .6), 
-                     breaks = c(.2, .4, .6)) +
-  theme(strip.text.y = element_text(angle = 0)) +
-  ggtitle("Figure 2 - Mean TANF Expenditures as a Percentage of Total\nExpenditures by Category (FY 1998 - 2013)")
-ggsave("Figures and Tables/Figure3.2_continued.pdf", height = 5, width = 6.5, units = "in")
 
 # Figure 3 Annual Mean Expenditures ####
 
@@ -197,8 +122,8 @@ ann_means_vis <- spread(ann_means, key = "category", value = "value")
 
 ann_means_vis <- ann_means_vis %>%
   mutate(service = (ann_means_vis$cc + ann_means_vis$pregnancy +
-                       ann_means_vis$shortben + ann_means_vis$tax +
-                       ann_means_vis$work)) %>% 
+                      ann_means_vis$shortben + ann_means_vis$tax +
+                      ann_means_vis$work)) %>% 
   mutate(other2 = (ann_means_vis$admin + ann_means_vis$other +
                      ann_means_vis$prior + ann_means_vis$ssbg)) %>% 
   select(year, ba, service, other = other2)
@@ -207,7 +132,7 @@ ann_means_vis <- gather(ann_means_vis, key = "category", value = "value", -year)
 
 ann_means_vis <- ann_means_vis %>% 
   mutate(category = factor(ann_means_vis$category, levels = c("other", "service", "ba")))
-  
+
 ggplot(ann_means_vis, aes(year, value, fill = category)) +
   geom_col() +
   scale_x_discrete(name = "", 
@@ -217,8 +142,8 @@ ggplot(ann_means_vis, aes(year, value, fill = category)) +
                      expand = c(0,.02)) +
   scale_fill_manual(values = c("#cccccc", "#666666", "#000000"),
                     labels = c("Other", 
-                              "Aid that is not basic assistance", 
-                              "Basic assistance"),
+                               "Aid that is not basic assistance", 
+                               "Basic assistance"),
                     name = "Type of Spending") +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
@@ -239,21 +164,21 @@ x <- ann_means %>%
   filter(category != "ba" & category != "admin" & category != "other" & category != "prior" & category != "ssbg") %>%
   mutate(label = ifelse(year == "2013", category, NA)) %>% 
   mutate(label = case_when(
-  label == "cc" ~ "    Child care",
-  label == "work" ~ "    Work-related\n    activities and supports", 
-  label == "pregnancy" ~ "    Marriage and pregnancy programs",
-  label == "tax" ~ "    Refundable tax credits", 
-  label == "shortben" ~ "    Diversion benefits")) %>% 
+    label == "cc" ~ "    Child care",
+    label == "work" ~ "    Work-related\n    activities and supports", 
+    label == "pregnancy" ~ "    Marriage and pregnancy programs",
+    label == "tax" ~ "    Refundable tax credits", 
+    label == "shortben" ~ "    Diversion benefits")) %>% 
   ggplot(aes(year, value, group = category)) +
   geom_line() +
   scale_y_continuous(labels = scales::percent,
                      name = element_blank()) +
   scale_x_discrete(breaks = c("2000", "2005", "2010")) +
   geom_text(aes(label = label),
-                  na.rm = TRUE,
-                  hjust = 0) +
+            na.rm = TRUE,
+            hjust = 0) +
   labs(title = "Figure 4 - Proportional Expenditures of Aid that is not Basic Assistance",
-          subtitle = "FY 1998 - 2013") +
+       subtitle = "FY 1998 - 2013") +
   theme(plot.margin = unit(c(2,12,2,2), "lines"),
         axis.title.x = element_blank(),
         axis.title.y = element_blank()) 
@@ -287,19 +212,19 @@ avg_props_id %>%
   mutate(outlier = ifelse((ba < (lql - (iqr * 1.5))) | (ba > (hql + (iqr * 1.5))), state_id, NA)) %>% 
   mutate(outlier2 = ifelse((ba < (lql - (iqr * 1.5))) | (ba > (hql + (iqr * 1.5))), ba, NA)) %>% 
   ggplot() +
-    geom_boxplot(aes(year, ba, group = year)) +
-    scale_x_discrete(name = "", 
-                     breaks = c("2000", "2005", "2010")) +
-    theme(axis.title = element_blank(), 
-          legend.position = "none") +
-    geom_point(aes(year, outlier2)) +
-    geom_text_repel(aes(year, outlier2, 
-                        label = outlier), 
-                    size = 2, 
-                    nudge_x = .15) +
-    scale_y_continuous(labels = scales::percent) +
-    labs(title = "Figure 5 - Basic Assistance Spending as a Percentage of Total Expenditures",
-         subtitle = "FY 1998 - 2013")
+  geom_boxplot(aes(year, ba, group = year)) +
+  scale_x_discrete(name = "", 
+                   breaks = c("2000", "2005", "2010")) +
+  theme(axis.title = element_blank(), 
+        legend.position = "none") +
+  geom_point(aes(year, outlier2)) +
+  geom_text_repel(aes(year, outlier2, 
+                      label = outlier), 
+                  size = 2, 
+                  nudge_x = .15) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title = "Figure 5 - Basic Assistance Spending as a Percentage of Total Expenditures",
+       subtitle = "FY 1998 - 2013")
 ggsave("Figures and Tables/Figure5.pdf", height = 5, width = 6.6, units = "in")
 
 # Note: The "missing value" warnings in the boxplot code stem from outlier labelling.
@@ -308,7 +233,7 @@ ggsave("Figures and Tables/Figure5.pdf", height = 5, width = 6.6, units = "in")
 ind_data <- read_excel("Input Data/TANF_ind-variables.xlsx", sheet = "Ind. Variables - FINAL", na = "NA")
 ind_data <- gather(ind_data, key = category, value = value, -STATE) %>% 
   separate(category, into = c("category", "year"), sep = " ") 
-  
+
 # Increase all independent variable years by 1
 ind_data <- mutate(ind_data, year = as.numeric(year) + 1) %>% 
   filter(!year == 2014 & !year == 2015) %>% 
@@ -410,7 +335,6 @@ aggregate(avg_props[, 3:12], list(avg_props$year), median, na.rm = TRUE) %>%
   write_csv("Appendix Tables/TableA.3.csv")
 # Table A.4 - Regression output of three cleaning methods ####
 
-# Time fixed effects 
 p_regress <- function(data) {
   plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability + caseload + 
         liberalism + wpr + unemployment + pcpi_regional,
@@ -441,9 +365,9 @@ stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
 
 
 
-               
 
-  
+
+
 # Figure 6 - Top and bottom ten ####
 top_ten_98 <- avg_props_id %>% 
   filter(year == 1998) %>%
@@ -471,7 +395,7 @@ avg_props_id %>%
   mutate(year = as.factor(year)) %>%
   mutate(rank = as.factor(ifelse(state_id %in% top_ten_98$state_id, 1, 
                                  ifelse(state_id %in% bottom_ten_98$state_id, 2, 0)))) %>%
-ggplot(aes(year, ba, group = state_id, color = rank, alpha = rank)) +
+  ggplot(aes(year, ba, group = state_id, color = rank, alpha = rank)) +
   geom_line() +
   geom_point() +
   scale_y_continuous(labels = scales::percent, 
@@ -481,7 +405,7 @@ ggplot(aes(year, ba, group = state_id, color = rank, alpha = rank)) +
   scale_color_manual(values = c("#cccccc", "#666666", "#000000"), 
                      name = element_blank(), 
                      breaks = c(1, 2),
-  labels = c("Ten highest spending\nstates in FY 1998", "Ten lowest spending\nstates in FY 1998")) +
+                     labels = c("Ten highest spending\nstates in FY 1998", "Ten lowest spending\nstates in FY 1998")) +
   scale_alpha_manual(values = c(.4, .8, .8),
                      guide = "none") +
   labs(title = "Figure 6 - Basic Assistance Spending as a Percentage of Total Spending",
@@ -541,7 +465,35 @@ writeData(wb2, "avg_props", na_count_avg_props)
 writeData(wb2, "props_avg", na_count_props_avg)
 
 saveWorkbook(wb2, "Checks/TANF_na_check.xlsx")
+
+
+
+
+
+
+
+
+
+
+
   
+
+
+avg_props_full <- left_join(avg_props_id, ind_data, by = c("STATE", "year"))
+
+avg_props_full %>% 
+  ggplot(aes(african_americans, liberalism, size = ba)) +
+  geom_point() +
+  geom_text(aes(african_americans, liberalism,
+                      label = ifelse(state_id %in% top_ten_13$state_id | state_id %in% bottom_ten_13$state_id,
+                                     state_id,
+                                     NA)),
+                  color = ifelse(filter(avg_props_full, year == 2013)$state_id %in% top_ten_13$state_id,"black",
+                                 ifelse(filter(avg_props_full, year == 2013)$state_id %in% bottom_ten_13$state_id, "gray",
+                                 "black")),
+                  size = 3,
+                  nudge_x = 2,
+                  nudge_y = 2)
 
 
 
