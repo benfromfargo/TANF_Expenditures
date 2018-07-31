@@ -65,31 +65,38 @@ props_avg <- props_avg %>%
 files <- list.files("Caseloads/")
 files <- str_c("Caseloads/", files)
 
+# Different file extensions
+files_xls <- files[1:18]
+files_xlsx <- files[19:20]
+
 readR <- function(file) {
   read_xls(file)
 }
 
-case_raw <- as.data.frame(map(files, readR)) %>% 
-  select(-contains("State.")) %>% 
+readR_2 <- function(file) {
+  read_xlsx(file)
+}
+
+case_raw <- cbind(as.data.frame(map(files_xls, readR)), as.data.frame(map(files_xlsx, readR_2))) %>% 
+  select(-starts_with("State.")) %>% 
   gather(key = "category", value = "value", -State) %>% 
   mutate(category = str_replace(category, "X", "")) %>% 
   mutate(value = floor(value)) %>% 
   separate(category, c("year", "category"), "_") %>% 
-  filter(State == "us_total") %>% 
-  filter(year != "2014")
+  filter(State == "us_total")
 
 case_raw %>% 
   filter(category == "families" | category == "0.families") %>% 
   ggplot(aes(year, value, group = category, color = category)) +
   geom_line() +
   labs(title = "Figure 1 - Families Receiving TANF Assistance in an Average Month",
-       subtitle = "CY 1998 - 2013",
+       subtitle = "CY 1998 - 2017",
        caption = "In millions of families") +
   scale_colour_manual(labels = c("Child-only families", "All families"), 
                       name = element_blank(), 
                       guide = guide_legend(reverse = TRUE), 
                       values = c("#666666", "#000000")) +  
-  scale_x_discrete(breaks = c("2000", "2005", "2010")) + 
+  scale_x_discrete(breaks = c("2000", "2005", "2010", "2015")) + 
   theme(axis.title.x = element_blank(), 
         axis.title.y = element_blank()) +
   scale_y_continuous(breaks = c(1000000, 1500000, 2000000, 2500000, 3000000),
