@@ -52,6 +52,7 @@ props <- props %>%
 props_avg <- data_frame(STATE = raw_data$STATE, category = raw_data$category, 
                         year = raw_data$year, value = rollmean(raw_data[, 4], 3, fill = NA),
                         total = raw_data$total)
+
 props_avg <- props_avg %>% 
   filter(!(year %in% c("1997", "2014"))) %>%
   mutate(value = value/total) %>%
@@ -59,6 +60,10 @@ props_avg <- props_avg %>%
   mutate(value = ifelse(value > 1 | value < 0, NA, value)) %>% 
   select(-total) %>% 
   spread(category, value)
+
+ann_means <- aggregate(avg_props[, 3:12], list(avg_props$year), mean, na.rm = TRUE) %>% 
+  rename(year = `Group.1`) 
+ann_means <- gather(ann_means, key = "category", value = "value", -year)
 
 # Figure 1 - Number of TANF Families in the Average Month ####
 

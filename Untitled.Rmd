@@ -1,0 +1,327 @@
+---
+header-includes:
+    - \usepackage{setspace}
+    - \doublespacing
+    - \setlength\parindent{24pt}
+    - \usepackage{fancyhdr}
+    - \pagestyle{fancy}
+    - \rhead{Goehring}
+    - \thispagestyle{empty}
+output: pdf_document
+bibliography: my_bibs.bib
+---
+``` {r echo = FALSE}
+library(tidyr)
+library(citr)
+suppressMessages(library("tidyverse"))
+library(ggrepel)
+library(pBrackets)
+library(gtable)
+suppressMessages(library("zoo"))
+suppressMessages(library("plm"))
+library(openxlsx)
+library(readxl)
+library(stats)
+library(grid)
+source("TANF_clean.R")
+```
+The 1996 Personal Responsibility and Work Opportunity Reconciliation Act (PRWORA) delegated broad authority to the U.S. states over cash assistance programs for low-income families. At the legislation’s core was Temporary Assistance For Needy Families (TANF), a block grant program that allowed states to use federal dollars in ways “reasonably calculated” to combat welfare dependency, support families and children, and prevent out-of-wedlock pregnancies. The creation of TANF and broad delegation of social welfare policymaking authority under the PRWORA prompts two over-arching questions. First, how have states spent TANF funds since the creation of the program? Did states use devolution to reshape welfare spending? And if changes did occur, were there broad trends among states or have states followed distinctive trajectories? Second, why do states spend TANF funds in particular ways? What factors—political, economic, or demographic—account for any observed variation in states’ TANF expenditure decisions?  
+
+This paper addresses both questions using TANF financial data published by the Department of Health and Human Services’ Administration for Children and Families (ACF). The data describe how TANF spending evolved and diversified over time as states shifted funds away from basic assistance (i.e., monthly cash payments to needy families) toward other policy concerns, such as marriage and pregnancy programs, other non-assistance expenditures, and refundable tax credits. With the descriptive analysis in hand, I estimate a fixed effects regression model to examine whether state-level factors can account for the observed variation in state spending patterns between FY 1998 and FY 2013. The analysis examines four hypotheses concerning the influence of race and ethnicity, political ideology, economic conditions, and TANF policy factors, and demonstrates that, while controlling for national-level trends, a number of state-level factors significantly correlate with states’ basic assistance spending.
+
+### I
+TANF provides each state a capped block grant and the discretion to create its own welfare program for low-income families. The TANF block grants are neither adjusted for inflation nor, with a few minor exceptions, changes in need within states.  The PRWORA apportioned states’ block grants based on the amount of federal spending received by a state for AFDC and other low-income public assistance programs between FY 1992 and 1995; they range in size from \$21.8 million in Wyoming to $3.7 billion in California.  In addition to the federal block grant, the other main source of TANF funding is Maintenance of Effort (MOE) funds, which are provided by the states. MOE expenditures are set at 75% of states’ FY 1994 contributions to AFDC and other low-income public assistance programs and can increase to 80% if an insufficient number of a state’s TANF recipients are engaged in work.  
+  
+The PRWORA empowered states to design their own TANF programs. In a particularly broad delegation of authority, states are permitted to spend federal and MOE funds in any manner “reasonably calculated” to realize one of TANF's four statutory goals: 1) Provide assistance to needy families so that children may be cared for in their own homes or in the homes of relatives; 2) End the dependence of needy parents on government benefits by promoting job preparation, work, and marriage; 3) Prevent and reduce the incidence of out-of-wedlock pregnancies and establish annual numerical goals for preventing and reducing the incidence of these pregnancies; and 4) Encourage the formation and maintenance of two-parent families. 
+  
+TANF’s broad statutory goals allow states to fund a variety of programs and policy areas with TANF funds. At the broadest level, programs and services funded with federal and MOE funds care are either considered assistance or non-assistance. Assistance includes basic assistance (i.e. ongoing monthly cash payments) and child care and transportation benefits for families without an employed adult—all other spending, such as refundable tax credits, pregnancy prevention programs, and child care for working families, is non-assistance. Unlike a family receiving non-assistance, a family receiving TANF assistance is subject to the time limits and work, child support, and other requirements introduced by the PRWORA. 
+
+###II
+For this analysis, we group TANF expenditures into ten spending categories.  Figure 1 aggregates those ten categories into three broad types of spending: basic assistance, aid that is not basic assistance, and other. In FY 1998, on average, 55% of total TANF expenditures were spent on basic assistance, with 19.7% spent on aid that is not basic assistance, which includes spending on child care, marriage and pregnancy programs, and refundable tax credits, and 26.4% on other spending, such as administrative costs and transfers to other programs. Average proportional basic assistance expenditures decreased from comprising an average of 55% of states’ total TANF spending in FY 1998 to 23.6% in FY 2013. As states decreased basic assistance spending, they began to fund other types of aid. In FY 1998, the average state spent 19.7% of its TANF funds on other types of aid, largely consisting of services for low-income families, in-kind benefits, or one-time cash benefits meant to meet short-term needs. By FY 2013, states spent 43.2% of TANF funds on these programs, taking the bulk of the funds freed up by the reduction in basic assistance spending.
+
+``` {r echo = FALSE}
+ann_means_vis <- spread(ann_means, key = "category", value = "value")
+
+ann_means_vis <- ann_means_vis %>%
+  mutate(service = (ann_means_vis$cc + ann_means_vis$pregnancy +
+                      ann_means_vis$shortben + ann_means_vis$tax +
+                      ann_means_vis$work)) %>% 
+  mutate(other2 = (ann_means_vis$admin + ann_means_vis$other +
+                     ann_means_vis$prior + ann_means_vis$ssbg)) %>% 
+  select(year, ba, service, other = other2)
+
+ann_means_vis <- gather(ann_means_vis, key = "category", value = "value", -year)
+
+ann_means_vis <- ann_means_vis %>% 
+  mutate(category = factor(ann_means_vis$category, levels = c("other", "service", "ba")))
+
+ggplot(ann_means_vis, aes(year, value, fill = category)) +
+  geom_col() +
+  scale_x_discrete(name = "", 
+                   breaks = c("2000", "2005", "2010")) +
+  scale_y_continuous(name = "", 
+                     labels = scales::percent,
+                     expand = c(0,.02)) +
+  scale_fill_manual(values = c("#cccccc", "#666666", "#000000"),
+                    labels = c("Other", 
+                               "Aid that is not basic assistance", 
+                               "Basic assistance"),
+                    name = "Type of Spending") +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        plot.caption = element_text(hjust = 0,
+                                    size = 6)) +
+  labs(title = "Figure 1 - Mean TANF Spending as Percentage of Total Expenditures",
+       subtitle = "FY 1998 - 2013",
+       caption = "\"Other\" includes administration and systems, expenditures under prior law, other non-assistance, and social services block grant categories;
+\"Aid that is not basic assistance\" includes child care, marriage and pregnancy programs, diversion benefits, refundable tax credits, 
+and work-related activities and supports categories. The percentages in Figure 1 may not add up to 100% in a given fiscal year due to the removal of 
+outlier values (i.e., proportional expenditure values that remained above 100% or below 0% after calculating moving averages). 
+See Table A.2 in the Appendix for a complete list of annual mean expenditures by year and category.")
+```
+	
+The specific types of spending that comprise aid that is not basic assistance in Figure 1 are broken out by category in Figure 2. States shifted funds from basic assistance toward a variety of different services and benefits for low-income families. Of the five categories that comprise non-basic assistance spending, funding for child care and work-related activities make up the bulk of expenditures. Proportional expenditures for both child care and work-related activities and supports increased dramatically in the late 1990s but slowed in later years and remained below their all-time high levels in FY 2013. 
+	
+While not comprising as significant a portion of state spending, the remaining categories that comprise non-basic assistance spending increased at a steady rate between FY 1998 and 2013. In FY 1998, the average state spent no TANF funds on refundable tax credits for low-income families, diversion benefits (which usually provide one-time lump sum payments to families to help them avoid entering the state’s TANF program), and marriage and pregnancy programs aimed at supporting healthy marriages and educating families about family planning. By FY 2013, however, the three categories collectively comprised 14.7% of the average state’s TANF spending, with marriage and pregnancy programs alone comprising 7.2% 
+
+``` {r echo = FALSE}
+x <- ann_means %>% 
+  filter(category != "ba" & category != "admin" & category != "other" & category != "prior" & category != "ssbg") %>%
+  mutate(label = ifelse(year == "2013", category, NA)) %>% 
+  mutate(label = case_when(
+    label == "cc" ~ "    Child care",
+    label == "work" ~ "    Work-related\n    activities and supports", 
+    label == "pregnancy" ~ "    Marriage and pregnancy programs",
+    label == "tax" ~ "    Refundable tax credits", 
+    label == "shortben" ~ "    Diversion benefits")) %>% 
+  ggplot(aes(year, value, group = category)) +
+  geom_line() +
+  scale_y_continuous(labels = scales::percent,
+                     name = element_blank()) +
+  scale_x_discrete(breaks = c("2000", "2005", "2010")) +
+  geom_text(aes(label = label),
+            na.rm = TRUE,
+            hjust = 0) +
+  labs(title = "Figure 2 - Proportional Expenditures of Aid that is not Basic Assistance",
+       subtitle = "FY 1998 - 2013") +
+  theme(plot.margin = unit(c(2,12,2,2), "lines"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()) 
+
+gt <- ggplotGrob(x)
+gt$layout$clip[gt$layout$name == "panel"] <- "off"
+grid.draw(gt)
+```
+
+The discussion so far has focused on national trends, average annual proportional expenditures, and aggregated values. With the broad devolution of policymaking power under TANF, however, the degree to which states participated in the trend of spending less on basic assistance may differ in important and interesting ways. In order to more closely examine state-level trends over time, Figure 3 provides annual box plots of basic assistance spending. Over time, the distribution of state spending remained relatively constant as it shifted downward.  The standard deviations of annual proportional basic assistance spending did not follow any clear trend, varying between 10.1% (in FY 2008) and 13.8% in (FY 1999). States with especially high levels of basic assistance spending also took part in the overall downward shift in spending. None of the states that spent the greatest portions of their grants on basic assistance between FY 2008 and 2013 spent more than the 75th percentile of proportional basic assistance expenditures in FY 1998 (62.6%), and Maine was the only state to exceed the median level of basic assistance spending in FY 1998 (53.1%).
+
+``` {r echo = FALSE, warning = FALSE}
+avg_props_id <- avg_props %>% 
+  arrange(desc(year)) %>% 
+  mutate(state_id = rep_len(c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", 
+                              "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+                              "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", 
+                              "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI",
+                              "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI",
+                              "WY"),
+                            length.out = 816)) %>%
+  select(state_id, STATE, everything())
+
+suppressWarnings(avg_props_id %>% 
+  select(state_id:year, ba) %>%
+  group_by(year) %>% 
+  mutate(lql= quantile(ba, probs = .25, na.rm = TRUE)) %>% 
+  mutate(hql = quantile(ba, probs = .75, na.rm = TRUE)) %>% 
+  mutate(iqr = hql - lql) %>% 
+  mutate(outlier = ifelse((ba < (lql - (iqr * 1.5))) | (ba > (hql + (iqr * 1.5))), state_id, NA)) %>% 
+  mutate(outlier2 = ifelse((ba < (lql - (iqr * 1.5))) | (ba > (hql + (iqr * 1.5))), ba, NA)) %>% 
+  ggplot() +
+  geom_boxplot(aes(year, ba, group = year)) +
+  scale_x_discrete(name = "", 
+                   breaks = c("2000", "2005", "2010")) +
+  theme(axis.title = element_blank(), 
+        legend.position = "none") +
+  geom_point(aes(year, outlier2)) +
+  geom_text_repel(aes(year, outlier2, 
+                      label = outlier), 
+                  size = 2, 
+                  nudge_x = .15) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title = "Figure 3 - Basic Assistance Spending as a Percentage of Total Expenditures",
+    subtitle = "FY 1998 - 2013"))
+```
+
+Although the overall variation of the distribution remained largely constant as states decreased basic assistance spending, the relative rank order of states within the distribution was not static. As states decreased basic assistance spending, the relative order of states was reshuffled, with relatively higher spending states becoming relatively lower spending states and vice versa (Figure 4). For instance, of the ten states that spent the greatest portion of total TANF funds on basic assistance in FY 1998, only three – Alaska, California, and Hawaii – remained among the ten highest spending states in FY 2013. Illinois, another high-spending state in FY 1998, shifted enough spending from basic assistance toward other policy areas to be among the ten lowest spending states in FY 2013. Similarly, states that spent relatively less on basic assistance in FY 1998 shifted their spending relative to their peers. Indiana and Oklahoma were the only states to be among the ten lowest spending states in both FY 1998 and FY 2013. On the other hand, Virginia’s relatively small decrease in proportional basic assistance spending meant it was among the ten lowest spending states in FY 1998 and the ten highest spending states in FY 2013. 
+
+``` {r echo = FALSE}
+top_ten_98 <- avg_props_id %>% 
+  filter(year == 1998) %>%
+  filter(!is.na(ba)) %>%
+  top_n(10, ba)
+
+bottom_ten_98 <- avg_props_id %>% 
+  filter(year == 1998) %>%
+  filter(!is.na(ba)) %>% 
+  top_n(-10, ba)
+
+top_ten_13 <- avg_props_id %>% 
+  filter(year == 2013) %>%
+  filter(!is.na(ba)) %>%
+  top_n(10, ba)
+
+bottom_ten_13 <- avg_props_id %>% 
+  filter(year == 2013) %>%
+  filter(!is.na(ba)) %>%
+  top_n(-10, ba)
+
+avg_props_id %>% 
+  filter(year == 1998 | year == 2013) %>%
+  filter(!is.na(ba)) %>% 
+  mutate(year = as.factor(year)) %>%
+  mutate(rank = as.factor(ifelse(state_id %in% top_ten_98$state_id, 1, 
+                                 ifelse(state_id %in% bottom_ten_98$state_id, 2, 0)))) %>%
+  ggplot(aes(year, ba, group = state_id, color = rank, alpha = rank)) +
+  geom_line() +
+  geom_point() +
+  scale_y_continuous(labels = scales::percent, 
+                     name = element_blank()) +
+  scale_x_discrete(name = element_blank(),
+                   expand = c(.2,.2)) +
+  scale_color_manual(values = c("#cccccc", "#666666", "#000000"), 
+                     name = element_blank(), 
+                     breaks = c(1, 2),
+                     labels = c("Ten highest spending\nstates in FY 1998", "Ten lowest spending\nstates in FY 1998")) +
+  scale_alpha_manual(values = c(.4, .8, .8),
+                     guide = "none") +
+  labs(title = "Figure 6 - Basic Assistance Spending as a Percentage of Total Spending",
+       subtitle = "FY 1998 and 2013",
+       caption = "South Carolina and Tennessee removed due to negative reported basic assistance expenditures in FY 1998. See appendix.") +
+  theme(plot.caption=element_text(size=6))
+```
+
+###III 
+As the descriptive analysis showed, state decisions about TANF spending are complex. To better understand the variation in states’ proportional basic assistance spending, this section examines state-level factors that may have shaped the degree to which states decreased basic assistance spending. Using a fixed effects regression model that controls for unobserved variation between states and across time, the analysis demonstrates significant relationships between states’ basic assistance expenditures and a variety of factors, including the size and racial composition of states’ caseloads and state governments’ progressivism. 
+  	
+The regression analysis is grounded upon four hypotheses concerning states’ allocations of basic assistance expenditures: 1) states with more racially and ethnically diverse basic assistance caseloads spend proportionally less on basic assistance; 2) states with more powerful and progressive democratic parties spend proportionally more on basic assistance; 3) states with more favorable economic conditions spend proportionally less on basic assistance expenditures; and 4) states’ basic assistance expenditures are sensitive to TANF-specific factors, such as caseload levels and work participation rates.
+	
+####Race and Ethnicity
+Two reinforcing strands in the literature on race and social policy are especially significant when considering the potential relationships between race, ethnicity and states’ basic assistance expenditures. The first concerns the role of racial prejudices toward African Americans in shaping public attitudes of welfare recipients. Studies such as Gilens (1996) note the significant effects of white stereotypes of African American mothers on welfare on white Americans’ support for welfare assistance. Drawing on national survey data and a randomized experiment, Gilens finds that white Americans that have significantly more negative attitudes toward African American are more likely to oppose welfare programs. Such attitudes translate to opinions of welfare policy, with “racial considerations” serving as “the single most important factor shaping whites’ views of welfare” (p. 601). 
+
+The other strand of the literature concerns the importance of race in shaping welfare policy outcomes. Several studies have examined the correlations between race and the restrictiveness of states’ TANF policies. Soss et al. (2001) note significant positive relationships between the proportion of African Americans receiving TANF benefits in a state and the probability of a state adopting strong sanctions, stricter time limits on benefit receipt, and a limit on the number of children that can be included in the benefit group (i.e., a “family cap”). They also find significant positive relationships between the proportion of Latinos receiving TANF benefits in a state and the probability of a state adopting stricter time limits on TANF benefits and a family cap on benefits. 
+In another study, Fellowes and Rowe (2004) largely echo the conclusions of Soss et al. (2001). They find that, on average, an increase from one standard deviation below the mean percentage of African Americans receiving TANF benefits to one standard deviation above the mean percentage results in significantly stricter TANF benefit eligibility criteria, stricter work requirements, and lower basic assistance benefits. They also find that the percentage of Latinos receiving TANF benefits is consequential, with an increase from one standard deviation below the mean percentage of Latinos in a state receiving TANF benefits to one standard deviation above the mean percentage resulting in significantly less flexible work requirements but less strict TANF benefit eligibility criteria.
+
+In terms of my analysis, I hypothesize that states with greater proportions of African Americans or Hispanics in their TANF caseload spend less on proportional basic assistance expenditures. I operationalize these hypotheses via the variables african_americans and hispanics. The former measures the percentage of individuals receiving basic assistance benefits in a state who identify as African American or Black, while the latter measures the percentage of individuals receiving basic assistance benefits in a state who identify as non-white and Hispanic. 
+	
+####Partisan Control of State Government
+Although the PRWORA was signed into law by President Clinton, partisanship and ideology are often considered crucial factors in structuring the scope and generosity of states’ TANF policies, with conservatives generally critical of cash welfare benefits and liberals more supportive of welfare assistance (Rom 1999). The findings of Soss et al. (2001) support the intuitive relationship between TANF policy and ideology. On average, the authors find that a state is 31% more likely to adopt strong sanctions for non-compliant TANF recipients if the state government is one standard deviation more conservative than the mean state rather than one standard deviation more liberal. Similarly, a state is 9% more likely to adopt strong sanctions, tougher work requirements, narrower time limits, and a family cap if the state government is one standard deviation more conservative than the mean state rather than one standard deviation more liberal. 
+
+I measure state political ideology with liberalism. Originally developed by Berry et al. (1998), liberalism captures the liberal ideology of a state government in a calendar year from 0 (most conservative) to 100 (most liberal), weighted by the powers of the democratic and republican parties in the upper and lower branches of the state legislature and ideology of the governor. The authors originally measured the ideologies of the political parties and governor using interest group ratings, but in Berry et al. (2010) the authors present a slightly different measure of ideology that uses Poole’s (1998) common space coordinates of Congressional roll call votes. Although they correlate strongly, Berry et al. (2010) conclude that the updated measure of ideology is more precise than the original, and it is therefore employed for liberalism. 
+
+Quantifying partisan control of state government via a measure of state government ideology controls for changes in party strength and ideology across states and time. Unlike other measures of partisanship, such as party control of state legislatures and governorships, state government ideology does not mask ideological differences between political parties in different states or shifts in political ideology over time. Instead, it incorporates these political differences and evolutions alongside swings in electoral power, creating a nuanced and flexible measure of partisanship.
+
+I hypothesize that states with higher liberalism scores spend proportionally more on basic assistance than more conservative state governments with lower liberalism scores. Progressive shifts in party ideology and electoral victories by progressive parties ought to be commensurate with increased basic assistance spending, reflecting liberal parties general support of social welfare spending. 
+
+####Economic Conditions
+In addition to race, ethnicity, and partisan affiliation, it is important to consider the effects of state-level economic factors on basic assistance expenditures. The PRWORA was passed in an era of low unemployment, tight labor markets, and rising wages for lower-skilled workers (Blank 2002). In an extensive literature review of TANF and AFDC research in the years following the passage of the PRWORA, Blank (2002) finds five econometric studies that argue for an elasticity of state unemployment rates to caseloads of between 5 and 7 percent. Since caseloads are directly related to basic assistance spending (fewer people receiving benefits allows states to spend the funds elsewhere), the studies conducted in the years following the PRWORA’s passage imply that state economic conditions should bear some impact on basic assistance spending. Qualitative evidence from the economic recession one decade later also supports the need to control for state-level economic conditions. Thirty states saw increases in the number of basic assistance recipients following the beginning of the economic downturn in December 2007 (Zedlewski and Golden 2010). As economic conditions worsened, many low-income families sought cash assistance, with likely consequences for basic assistance expenditures. 
+	
+Following the established trend in the literature, I expect states with higher unemployment rates to spend proportionally more on basic assistance. I assess this hypothesis with unemployment, which measures a state’s annual unemployment rate among the civilian non-institutional population. While the unemployment rate is a common metric of a state’s economic vitality (Blank 2002), I also include each state’s real per capita personal income in thousands of 2013 dollars controlling for regional variations in purchasing power. I expect per capita income to be inversely related to states’ basic assistance spending. Unemployment rates and incomes are likely to be strongly and inversely correlated, but for the population who receives TANF, they may not move in tandem. Moving from welfare to work increases earned income but decreases assistance benefits. As such, controlling for states’ unemployment rates alone may not adequately control for states’ economic conditions, especially as they pertain to the low-income families most likely to receive basic assistance. 
+	
+In addition to the hypothesized relationships between unemployment and per capita income and basic assistance spending, I also expect that economic conditions affect TANF spending by exerting fiscal pressures on states. In their case study of TANF programs in California, Washington, Michigan, Florida, and Texas, Hahn et. al (2012) note how budget deficits following the Great Recession forced many states to reshape TANF spending. TANF’s broad spending discretion allows states to shift TANF funds away from basic assistance toward other policy areas previously funded by non-TANF dollars, allowing the latter to be used elsewhere. California, for instance, reduced basic assistance benefits by 8% in 2011 alongside other reductions in job training and child care funding, freeing $800 million in MOE expenditures for higher education programs. Hahn et. al (2012) find evidence of a similar shifts in Michigan and Washington. In all cases, the authors found that states were utilizing TANF’s broadly-defined goals to fund programs obliquely related to TANF with TANF dollars. As an advocate for low-income families in Washington put it when discussing the policy areas being funded by TANF, “no one is pretending that it is for a TANF purpose.” 
+
+Following the qualitative evidence on behalf of states reducing spending in core TANF areas to cover other costs, I expect states with budgetary shortfalls to spend proportionally less on basic assistance. I operationalize the hypothesis with fiscal_stability, which measures a state’s ending annual fiscal balance and budget stabilization fund (i.e., “rainy day fund”) as a percentage of its annual expenditures. 
+
+The hypothesized effect of fiscal_stability on basic assistance spending is in the opposite direction of the other two economic variables included in the model, unemployment and pcpi_regional. As economic conditions worsen, I expect states to experience contradictory pressures. On the one hand, fewer jobs and lower incomes ought to lead states to increase basic assistance spending in order to support their residents. At the same time, worsening economic conditions reduce state revenues and decrease budgetary surpluses, leading to less basic assistance spending as TANF spending is reallocated to free non-TANF funds for other uses. 
+	
+Controlling for both hypothesized relationships gives the model an additional level of rigor that would be lacking by simply controlling for states’ unemployment rates and allows for a broader range of economic relationships to come to the fore. 
+
+####TANF Factors
+Finally, I hypothesize that certain TANF-specific factors correlate with states’ basic assistance expenditures. Since the passage of the PRWORA in 1996, as Figure 6 illustrates, the number of individuals receiving TANF has declined dramatically, with only a comparatively small increase following the 2008 financial crisis and recession. 
+ 
+While caseload changes are in part, as argued above, a function of economic conditions, they cannot be fully accounted for by economic explanations (Blank 2002). States are not passive actors when it comes to basic assistance eligibility and benefit levels; they control income thresholds, time limits, family cap policies, and work participation requirements – all factors which may impact caseload sizes. It is difficult to untangle the specific impact of these policies on caseload sizes and even harder to discern their relationship to basic assistance expenditures given the circularity of program policies and spending. Nevertheless, given the significant decrease in caseloads between 1998 and 2013, and its similarity to the trend in basic assistance expenditures in Figure 5, it is important to incorporate a broad control for changing caseloads in the model. Hence, I include caseload, the annual percentage change in a state’s average monthly TANF or SSP-MOE recipient caseload. 
+
+In addition to accounting for changing caseloads, it is important examine whether work participation requirements have any bearing on basic assistance spending. The PRWORA mandated that 50% of all families and 90% of two-parent families receiving TANF assistance in a state be “engaged in work” in a fiscal year in order to avoid a reduction in the state’s block grant. Before FY 2007, a state could reduce its required work participation rate by the percentage decrease in its TANF caseload from FY 1995 levels. Since, as evident in Figure 6, caseloads declined dramatically in the years immediately following the passage of the PRWORA, states easily met this requirement.  The Deficit Reduction Act of 2005 made it more demanding for states to reduce their work participation rates by changing the fiscal year for calculating reductions in caseloads from FY 1995 to FY 2005. However, since 1999 states have also been able to reduce the percentage of their caseload that must meet work requirements by spending more on MOE than mandated by federal statute. 
+	
+In addition to caseload reduction credits and excess MOE spending, states can reduce the burden of the work participation rate requirement by altering the composition of their TANF caseloads. For instance, a state can reduce the number of unemployed or difficult to employ recipients in the caseload by imposing stricter work requirements or eligibility criteria. The resulting caseload is more likely to meet the work participation requirement, but also is likely to be smaller and have higher average earned incomes, resulting in lower basic assistance expenditures. 
+	
+However, a state can also reduce the burden of the work participation requirement by increasing the number of employed TANF recipients in the caseload. Some states have taken this approach and offer transitional benefits to TANF recipients who are ineligible due to increased earnings. For example, until October 2015, Michigan granted \$10 to former TANF recipients for 6 months after becoming ineligible due to increased earnings if they continued to meet their work requirements (Urban Institute 2018). Likewise, in 2016 Missouri gave one-parent families working 30 hours per week after leaving TANF \$50 for six months and New Jersey granted former recipients $200 for 24 months if they continued to work 20 hours per week (Giannarelli et al. 2017). The benefits allow states to claim more employed recipients against the work participation rate, with the tangential effect of increasing basic assistance spending.
+
+Since changes in the composition of the caseload in response to the work participation requirement have theoretically ambiguous effects on basic assistance spending, the influence of the work participation requirement on basic spending requires empirical testing. I evaluate the role of the work participation requirement in the model with wpr, a dummy variable that takes the value of one if a state did not meet its work participation rate and zero if it did.  
+	
+###IV 
+
+Table 1 presents four regression models of states’ basic assistance expenditures as a percentage of total TANF expenditures.  Each model includes state fixed effects that control for unobserved, state-specific effects that are constant across time. The independent variables are also lagged in every model to correspond to the period when states allocated their TANF block grants. Model 1 includes all independent variables except caseload, unemployment, and pcpi_regional. As hypothesized, the model’s racial and ethnic coefficients are highly significant and negative: A state that experiences a 1% increase in African Americans in its TANF caseload spends, on average, .727% less on basic assistance in the following fiscal year. Likewise, a state with a 1% increase in Hispanics in its TANF caseload spends .539% less on basic assistance in the following fiscal year. Model 1 also illustrates a significant relationship in the expected direction between whether a state met its work participation rate requirement in the prior year and its basic assistance spending. On average, a state that did not meet its work participation rate requirement spent 3.419% less on basic assistance in the following fiscal year. 
+Although Model 1 displays a number of significant results, the low adjusted R2 value (.026) indicates that the model accounts for very little of the variation in states’ basic assistance expenditures. Models 2 and 3 improve upon Model 1 by adding caseload, unemployment, and pcpi_regional as control variables. Model 2 accounts for the sizes of states’ TANF caseloads and demonstrates that, as hypothesized, states’ basic assistance spending is positively associated with the number of TANF cases. A percentage decrease in a state’s TANF caseload leads to a .091% average decrease in basic assistance spending in the next fiscal year. Yet, including caseload only modestly improves the explanatory power of the analysis as measured by the adjusted R2, which only increases from .026 in Model 1 to .041 in Model 2.  
+
+Model 3 builds upon Model 2 by incorporating the economic variables unemployment and pcpi¬_regional. Both variables are highly significant and negative in the model, indicating – somewhat counterintuitively – that higher unemployment and higher incomes are associated with lower proportional basic assistance expenditures. Controlling for economic factors also has ramifications for the significance of other variables in the model: fiscal_stability becomes significant and positive while hispanics becomes insignificant. Including unemployment and pcpi_regional greatly increases the portion of the variation in states’ basic assistance expenditures accounted for by the analysis. Compared to Model 1, the adjusted R2 of Model 3 (.420) indicates that economic factors account for a sizable share of the variation in states’ spending.
+
+``` {r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+suppressMessages(library("stargazer"))
+```
+``` {r mylatextable, results = "asis"}
+# Model 1 : Without caseload, pcpi_regional, and unemployment - no time effects
+p1 <- plm(ba ~ african_americans + hispanics + fiscal_stability + liberalism + wpr,
+          data = avg_props_pdata,
+          model = "within", 
+          effect = "individual")
+
+# Model 2 : Without pcpi_regional and unemployment - no time effects
+p2 <- plm(ba ~ african_americans + hispanics + fiscal_stability + caseload + liberalism + wpr,
+          data = avg_props_pdata,
+          model = "within", 
+          effect = "individual")
+
+# Model 3 : All variables - no time effects 
+p3 <- plm(ba ~ african_americans + hispanics + fiscal_stability + caseload + liberalism + wpr + 
+            unemployment + pcpi_regional,
+          data = avg_props_pdata, 
+          model = "within", 
+          effect = "individual")
+
+# Model 4 : All variables - time effects 
+p4 <- plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability + caseload + liberalism + wpr + 
+            unemployment + pcpi_regional,
+          data = avg_props_pdata, 
+          model = "within", 
+          effect = "individual")
+
+stargazer(p1, p2, p3, p4,
+          title = "Table 1 - Regression Output",
+          column.labels = c("Model 1", "Model 2", "Model 3", "Model 4"),
+          covariate.labels = c(NA, NA, NA, NA, NA, NA, NA, "pcpi regional"),
+          dep.var.labels = "Basic Assistance Expenditures as a Percentage of Total TANF Expenditures",
+          omit = "year",
+          omit.labels = c("Time Fixed Effects"),
+          notes.align = "r",
+          model.numbers = FALSE,
+          initial.zero = FALSE,
+          column.sep.width = "1pt",
+          font.size = "small",
+          type = "latex")
+```
+
+Model 4, the final model in the analysis, introduces time fixed effects, thereby controlling for unobserved trends that are constant across states in any given fiscal year. I argued above that there are two trends in basic assistance spending between FY 1998 and 2013. The aggregate decrease in basic assistance spending which every state participated in and the within-distribution divergence that resulted from states’ following distinctive paths within the national trend. With time fixed effects in place, Model 4 controls for the national-level forces that shaped basic assistance expenditures in the aggregate and allows for a more unbiased, fine-grained analysis of what state-level factors caused states’ basic assistance spending to diverge within the distribution.  
+
+In Model 4, african_americans remains highly significant and, as expected, negatively correlated with states’ basic assistance spending. On average, a state that experienced a 1% increase in the portion of its TANF caseload composed of African Americans spent .249% less on basic assistance in the following fiscal year. Such a finding corresponds to the conclusions of Gilens (1996), Fellowes and Rowe (2004), and Soss et al. (2001) and underlines the important role that race continues to play in shaping social policy outcomes.   
+In contrast to african_americans, hispanics is neither significant nor in the hypothesized direction in the final model. The evolution of hispanics across the four models implies that its significance in Models 1 and 2 was the spurious result of either omitted variable bias stemming from correlations with economic factors or national-level demographic changes controlled for by the time fixed effects in Model 4. Regardless of the exact reason for its insignificance in the final model, hispanics’ positive and insignificant coefficient is not unprecedented. As mentioned above, Fellowes and Rowe (2004) find significant inverse relationships between the percentage of Latinos receiving TANF benefits in a state and both the flexibility of work requirements and the strictness of TANF eligibility criteria. Similar to my own findings, the authors illustrate that the effect of growing numbers of Hispanic welfare recipients on TANF policy outcomes is not straightforward. Unlike in the case of African Americans, where there is clear evidence that negative perceptions significantly affect TANF and other social welfare policy outcomes, the increasing number of Hispanics across the United States seems to bear a more nuanced, undetermined influence on TANF spending.  
+
+Turning to economic factors, Model 4 does not provide any evidence in support of the hypothesis that states with higher budget shortfalls will reduce basic assistance spending in the forthcoming year to cover costs. Likewise, the final model does not support my claim that states’ per capita personal incomes are negatively associated with basic assistance spending and only weakly implies that states’ unemployment rates positively correlate with basic assistance expenditures. The dramatic shifts in the magnitude and significance of pcpi_regional and unemployment relative to Model 3 are a likely product of national-level changes in economic conditions. What appears in Model 3 as significant relationships between state-level economic variation and basic assistance spending variation are the spurious result of simultaneous aggregate movements in economic conditions and TANF spending, not potentially causal relationships at the state-by-state level.  
+
+Model 4 indicates that a state that experienced a 1% decline in its TANF caseload from the prior year spent, on average, .15% less on basic assistance in the following year. The increase in caseload’s magnitude as compared to Model 3 suggests that isolating the relationship between caseload change and basic assistance expenditures from the aggregate decreases in states’ TANF caseloads increases the direct correlation between decreasing caseloads and reduced basic assistance spending. In other words, even when aggregate trends in caseload sizes are accounted for, states that experienced greater decreases in caseload sizes spent a lower proportion of their TANF block grants on basic assistance – a finding that both corresponds to my hypothesis and sheds light on the observed variation within the overall trend of lower basic assistance spending.  
+
+As discussed above, the influence of the work participation requirement on basic assistance spending is theoretically ambiguous. States can reduce the requirement’s burden by either increasing the number of employed recipients through greater basic assistance spending or decreasing the number of unemployed recipients, with the tangential effect of lower basic assistance expenditures. However, as illustrated in Model 4, the empirical relationship between the work participation requirement and basic assistance spending is not ambiguous: States that did not meet their work participation rate spent, on average, 5.102% more on basic assistance in the following year. The highly significant coefficient rejects the hypothesis that, all else equal, states sought to remove unemployed recipients from their caseloads in response to not meeting the work participation rate requirement.  
+
+Similar to caseload and wpr, the introduction of time fixed effects in Model 4 increases the magnitude of liberalism, suggesting that national changes in political ideology and aggregate changes in other state-level variables served as negative confounders in earlier models. As hypothesized, liberalism is positive and significant in Model 4, implying that more progressive state governments allocate larger proportions of TANF funds to basic assistance than more conservative state governments. Such a finding corresponds to my hypothesis concerning progressivism and basic assistance spending and the well-established relationship between political ideology and social welfare spending more broadly.  
+
+Finally, although masked in Table 1 for readability, the coefficients on the time fixed effects in Model 4 are presented below in Table 2. The coefficients are all highly significant and of a large magnitude. Holding constant the eight state-level independent variables specified in Model 4, states spent, on average, 34.764% less on proportional basic assistance in FY 2013 than 1998. The coefficients in Table 2 correspond to the aggregate decrease in basic assistance illustrated in Figure 5 and underline the fact that state-level divergence occurred within a nationwide reduction in basic assistance spending. 
+
+###V
+This paper has considered two over-arching questions. How have states spent TANF funds since the passage of the PRWORA and why do states spend TANF funds in particular ways? To answer the first question, I used TANF expenditure data to argue that the dominant trend since the passage of the PRWORA is the reduction in proportional basic assistance expenditures. States utilized PRWORA’s devolution of spending authority and TANF’s broad statutory goals to reduce spending on direct cash assistance for needy families. In the place of basic assistance, states increased funding for refundable tax credit programs, marriage and pregnancy programs, child care, diversion benefits, and other policy areas. I argued that while the policy areas that experienced increases in spending also saw increases in variation as states took different paths in creating TANF programs, the reduction in basic assistance spending was a national trend which every state took part in. 
+
+Although every state reduced basic assistance spending between FY 1998 and 2013, the states did not move in lock-step. The amount a state spent on basic assistance in FY 1998 has little bearing on the amount it spent on basic assistance in FY 2013. I utilized this variation to approach the second over-arching question of why states spent their TANF funds in certain ways. Using four hypotheses to ground my regression analysis, my findings indicate that the number of African Americans in a state’s TANF caseload, caseload change, the liberalism of a state’s government, and whether a state met its work participation requirement are particularly important in understanding the observed variation within the national trend of decreasing basic assistance expenditures. 
+
+At the same time as my findings are helpful in understanding why states took different paths within the national trend of decreasing basic assistance expenditures, they are unable to explain the national-level trend itself, pointing to the need for further research into the broader forces that aggregately shaped basic assistance spending. The magnitude and significance of the time fixed effects coefficients in Table 3 underline the fact that the reduction in basic assistance spending was a national-level trend that deserves a national-level analysis. TANF’s creation paved the way for a new approach to assisting low-income families, but also provided states with the authority to make spending decisions that have yet to be fully understood.  
+
+
+
