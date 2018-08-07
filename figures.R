@@ -5,6 +5,7 @@ library(gtable)
 library(grid)
 library(stargazer)
 library(extrafont)
+library(plm)
 
 # Figure 1 ####
 ## @knitr Figure.1
@@ -229,3 +230,30 @@ time_effects %>%
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         text = element_text(family = "Times New Roman"))
+
+# Table A.1 ####
+## @knitr Table A.1
+p_regress <- function(data) {
+  plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability + caseload + 
+        liberalism + wpr + unemployment + pcpi_regional,
+      data = data, 
+      model = "within", 
+      effect = "individual")
+}
+fixed_props <- p_regress(props_pdata)
+fixed_avg_props <- p_regress(avg_props_pdata)
+fixed_props_avg <- p_regress(props_avg_pdata)
+
+stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
+          column.labels = c("Raw Proportions", "Moving Averages of Proportions", "Proportions of Moving Averages"),
+          title = "Comparing Regression Output Across Three Data Cleaning Methods", 
+          covariate.labels = c(NA, NA, NA, NA, NA, NA, NA, "pcpi regional (thousands)"),
+          omit = "year",
+          omit.labels = c("Time Fixed Effects"),
+          notes.align = "r",
+          initial.zero = FALSE,
+          header = FALSE,
+          dep.var.labels = "Basic Assistance Expenditures as a Percentage of Total Expenditures",
+          column.sep.width = "1pt",
+          font.size = "small",
+          type = "latex")

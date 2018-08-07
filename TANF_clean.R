@@ -57,6 +57,7 @@ props_avg <- props_avg %>%
 ann_means <- aggregate(avg_props[, 3:12], list(avg_props$year), mean, na.rm = TRUE) %>% 
   rename(year = `Group.1`) 
 ann_means <- gather(ann_means, key = "category", value = "value", -year)
+
 # Clean Independent Variables #####
 ind_data <- read_excel("Input Data/TANF_ind-variables.xlsx", sheet = "Ind. Variables - FINAL", na = "NA")
 ind_data <- gather(ind_data, key = category, value = value, -STATE) %>% 
