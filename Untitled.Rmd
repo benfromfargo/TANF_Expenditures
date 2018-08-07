@@ -15,7 +15,7 @@ mainfont: Times New Roman
 bibliography: my_bibs.bib
 
 nocite: |
-  [@hlavacStargazer2018]
+  [@hlavacStargazerWellFormattedRegression2018], [@wickhamTidyverseEasilyInstall2017]
 ---
 ``` {r echo = FALSE, message = FALSE, results = FALSE}
 library(tidyr)
@@ -32,7 +32,6 @@ library(readxl)
 library(stats)
 library(grid)
 library(extrafont)
-loadfonts()
 
 source("TANF_clean.R")
 read_chunk("figures.R")
@@ -52,10 +51,12 @@ TANF’s broad statutory goals allow states to fund a variety of programs and po
 ###II
 For this analysis, we group TANF expenditures into ten spending categories.^[ See the appendix for the full list and description of categories.] Figure 1 aggregates those ten categories into three broad types of spending: basic assistance, aid that is not basic assistance, and other. In FY 1998, on average, 55% of total TANF expenditures were spent on basic assistance, with 19.7% spent on aid that is not basic assistance, which includes spending on child care, marriage and pregnancy programs, and refundable tax credits, and 26.4% on other spending, such as administrative costs and transfers to other programs.^[ The “Other” spending type includes expenditures justified under the AFDC program that preceded TANF, “Other” Nonassistance, transfers to the Social Services Block Grant Program, and costs related to administration and systems. For more information on these specific categories see [@derrUnderstandingTwoCategories2009; @SocialServicesBlock2015].] Average proportional basic assistance expenditures decreased from comprising an average of 55% of states’ total TANF spending in FY 1998 to 23.6% in FY 2013. As states decreased basic assistance spending, they began to fund other types of aid. In FY 1998, the average state spent 19.7% of its TANF funds on other types of aid, largely consisting of services for low-income families, in-kind benefits, or one-time cash benefits meant to meet short-term needs. By FY 2013, states spent 43.2% of TANF funds on these programs, taking the bulk of the funds freed up by the reduction in basic assistance spending.
 
-``` {r echo = FALSE, fig.align = "center"}
+
+``` {r echo = FALSE}
 <<Figure.1>>
 ```
-	
+
+
 The specific types of spending that comprise aid that is not basic assistance in Figure 1 are broken out by category in Figure 2. States shifted funds from basic assistance toward a variety of different services and benefits for low-income families. Of the five categories that comprise non-basic assistance spending, funding for child care and work-related activities make up the bulk of expenditures. Proportional expenditures for both child care and work-related activities and supports increased dramatically in the late 1990s but slowed in later years and remained below their all-time high levels in FY 2013. 
 	
 While not comprising as significant a portion of state spending, the remaining categories that comprise non-basic assistance spending increased at a steady rate between FY 1998 and 2013. In FY 1998, the average state spent no TANF funds on refundable tax credits for low-income families, diversion benefits (which usually provide one-time lump sum payments to families to help them avoid entering the state’s TANF program), and marriage and pregnancy programs aimed at supporting healthy marriages and educating families about family planning. By FY 2013, however, the three categories collectively comprised 14.7% of the average state’s TANF spending, with marriage and pregnancy programs alone comprising 7.2% 
@@ -113,7 +114,7 @@ Finally, I hypothesize that certain program-specific factors correlate with stat
  
 While caseload changes are in part, as argued above, a function of economic conditions, they cannot be fully accounted for by economic explanations [@blankEvaluatingWelfareReform2002]. States are not passive actors when it comes to basic assistance eligibility and benefit levels; they control income thresholds, time limits, family cap policies, and work participation requirements – all factors which may impact caseload sizes. It is difficult to untangle the specific impact of these policies on caseload sizes and even harder to discern their relationship to basic assistance expenditures given the circularity of program policies and spending. Nevertheless, given the significant decrease in caseloads between 1998 and 2013, and its similarity to the trend in basic assistance expenditures in Figure 5, it is important to incorporate a broad control for changing caseloads in the model. Hence, I include caseload, the annual percentage change in a state’s average monthly TANF or SSP-MOE recipient caseload. 
 
-In addition to accounting for changing caseloads, it is important examine whether work participation requirements influence basic assistance spending. The PRWORA mandated that 50% of all families and 90% of two-parent families receiving TANF assistance in a state be “engaged in work” in a fiscal year in order to avoid a reduction in the state’s block grant. Before FY 2007, a state could reduce its required work participation rate by the percentage decrease in its TANF caseload from FY 1995 levels. Since, as Figure 1 shows, caseloads declined dramatically in the years immediately following the passage of the PRWORA, states easily met this requirement. However, the Deficit Reduction Act of 2005 made it more demanding for states to reduce their work participation rates by changing the fiscal year for calculating reductions in caseloads from FY 1995 to FY 2005.[^ The American Recovery and Reinvestment Act of 2009 suspended work participation standard requirements for FY 2009-2011. For more details on what constitutes being “engaged in work” and the changes to work requirement calculations see [@falkTemporaryAssistanceNeedy2017]]
+In addition to accounting for changing caseloads, it is important examine whether work participation requirements influence basic assistance spending. The PRWORA mandated that 50% of all families and 90% of two-parent families receiving TANF assistance in a state be “engaged in work” in a fiscal year in order to avoid a reduction in the state’s block grant. Before FY 2007, a state could reduce its required work participation rate by the percentage decrease in its TANF caseload from FY 1995 levels. Since, as Figure 1 shows, caseloads declined dramatically in the years immediately following the passage of the PRWORA, states easily met this requirement. However, the Deficit Reduction Act of 2005 made it more demanding for states to reduce their work participation rates by changing the fiscal year for calculating reductions in caseloads from FY 1995 to FY 2005.^[ The American Recovery and Reinvestment Act of 2009 suspended work participation standard requirements for FY 2009-2011. For more details on what constitutes being “engaged in work” and the changes to work requirement calculations see [@falkTemporaryAssistanceNeedy2017]]
 
 Since 1999 states have also been able to reduce the percentage of their caseload that must meet work requirements by spending more on MOE than mandated by federal statute. But, in addition to caseload reduction credits and excess MOE spending, states can reduce their work participation rate requirement by altering the composition of their TANF caseloads. For instance, a state can reduce the number of unemployed or difficult to employ recipients in the caseload by imposing stricter work requirements or eligibility criteria. The resulting caseload is more likely to meet the work participation requirement, but also is likely to be smaller and have higher average earned incomes, resulting in lower basic assistance expenditures. 
 

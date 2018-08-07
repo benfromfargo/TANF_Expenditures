@@ -25,29 +25,28 @@ ann_means_vis <- ann_means_vis %>%
 
 ggplot(ann_means_vis, aes(year, value, fill = category)) +
   geom_col() +
-  scale_x_discrete(name = "", 
-                   breaks = c("2000", "2005", "2010")) +
-  scale_y_continuous(name = "", 
-                     labels = scales::percent,
+  scale_x_discrete(breaks = c("2000", "2005", "2010")) +
+  scale_y_continuous(labels = scales::percent,
                      expand = c(0,.02)) +
   scale_fill_manual(values = c("#cccccc", "#666666", "#000000"),
                     labels = c("Other", 
                                "Aid that is not basic assistance", 
                                "Basic assistance"),
                     name = "Type of Spending") +
-  theme(panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
+  theme(panel.grid.major = element_blank(), axis.title.x = element_blank(), 
+        panel.grid.minor = element_blank(), axis.title.y = element_blank(),
         panel.background = element_blank(),
         text = element_text(family = "Times New Roman"),
         plot.caption = element_text(hjust = 0,
-                                    size = 6)) +
-  labs(title = "Figure 1 - Mean TANF Spending as Percentage of Total Expenditures",
-       subtitle = "FY 1998 - 2013",
-       caption = "\"Other\" includes administration and systems, expenditures under prior law, other non-assistance, and social services block grant categories;
-\"Aid that is not basic assistance\" includes child care, marriage and pregnancy programs, diversion benefits, refundable tax credits, 
-and work-related activities and supports categories. The percentages in Figure 1 may not add up to 100% in a given fiscal year due to the removal of 
-outlier values (i.e., proportional expenditure values that remained above 100% or below 0% after calculating moving averages). 
-See Table A.2 in the Appendix for a complete list of annual mean expenditures by year and category.")
+                                    size = 8)) +
+  labs(title = "Mean Proportional TANF Spending by Type",
+    subtitle = "FY 1998 - 2013",
+    caption = "Note: \"Other\" includes the spending categories: administration and systems, expenditures under prior law,
+other non-assistance, and social services block grant categories; \"Aid that is not basic assistance\" includes the categories: 
+child care, marriage and pregnancy programs, diversion benefits, refundable tax credits, and work-related activities and 
+supports categories. The percentages may not add up to 100% in a given fiscal year due to the removal of outlier values 
+(i.e., proportional expenditure values that remained above 100% or below 0% after calculating moving averages).") 
+
 
 
 # Figure 2 ####
@@ -71,7 +70,7 @@ x <- ann_means %>%
             hjust = 0) +
   labs(title = "Figure 2 - Mean Proportional Expenditures of Aid that is not Basic Assistance",
        subtitle = "FY 1998 - 2013") +
-  theme(plot.margin = unit(c(2,12,2,2), "lines"),
+  theme(plot.margin = unit(c(1,12,1,1), "lines"),
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         text = element_text(family = "Times New Roman")) 
@@ -104,7 +103,7 @@ suppressWarnings(avg_props_id %>%
                    mutate(outlier2 = ifelse((ba < (lql - (iqr * 1.5))) | (ba > (hql + (iqr * 1.5))), ba, NA)) %>% 
                    ggplot() +
                    geom_boxplot(aes(year, ba, group = year)) +
-                   scale_x_discrete(name = "", 
+                   scale_x_discrete(name = element_blank(), 
                                     breaks = c("2000", "2005", "2010")) +
                    theme(axis.title = element_blank(), 
                          legend.position = "none",
