@@ -38,17 +38,10 @@ ggplot(ann_means_vis, aes(year, value, fill = category)) +
         panel.grid.minor = element_blank(), axis.title.y = element_blank(),
         panel.background = element_blank(),
         text = element_text(family = "Times New Roman"),
-        plot.caption = element_text(hjust = 0,
-                                    size = 8)) +
-  labs(title = "Mean Proportional TANF Spending by Type",
-    subtitle = "FY 1998 - 2013",
-    caption = "Note: \"Other\" includes the spending categories: administration and systems, expenditures under prior law,
-other non-assistance, and social services block grant categories; \"Aid that is not basic assistance\" includes the categories: 
-child care, marriage and pregnancy programs, diversion benefits, refundable tax credits, and work-related activities and 
-supports categories. The percentages may not add up to 100% in a given fiscal year due to the removal of outlier values 
-(i.e., proportional expenditure values that remained above 100% or below 0% after calculating moving averages).") 
-
-
+        plot.caption = element_text(hjust = 0)) +
+  labs(caption = "See Table 2 in the appendix for category groups. Percentages may not add up to 100% in a given fiscal year 
+due to the removal of outlier values (i.e., proportional expenditure values that remain above 100% or below 0% after 
+calculating moving averages). See the appendix for more information.") 
 
 # Figure 2 ####
 ## @knitr Figure.2
@@ -57,7 +50,7 @@ x <- ann_means %>%
   mutate(label = ifelse(year == "2013", category, NA)) %>% 
   mutate(label = case_when(
     label == "cc" ~ "    Child care",
-    label == "work" ~ "    Work-related\n    activities and supports", 
+    label == "work" ~ "    Work-related activities and supports", 
     label == "pregnancy" ~ "    Marriage and pregnancy programs",
     label == "tax" ~ "    Refundable tax credits", 
     label == "shortben" ~ "    Diversion benefits")) %>% 
@@ -68,9 +61,9 @@ x <- ann_means %>%
   scale_x_discrete(breaks = c("2000", "2005", "2010")) +
   geom_text(aes(label = label),
             na.rm = TRUE,
-            hjust = 0) +
-  labs(title = "Figure 2 - Mean Proportional Expenditures of Aid that is not Basic Assistance",
-       subtitle = "FY 1998 - 2013") +
+            hjust = 0, 
+            family = "Times New Roman",
+            size = 4) +
   theme(plot.margin = unit(c(1,12,1,1), "lines"),
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
@@ -79,7 +72,6 @@ x <- ann_means %>%
 gt <- ggplotGrob(x)
 gt$layout$clip[gt$layout$name == "panel"] <- "off"
 grid.draw(gt)
-
 
 # Figure 3 ####
 ## @knitr Figure.3
@@ -114,9 +106,7 @@ suppressWarnings(avg_props_id %>%
                                        label = outlier), 
                                    size = 2, 
                                    nudge_x = .15) +
-                   scale_y_continuous(labels = scales::percent) +
-                   labs(title = "Figure 3 - Proportional Basic Assistance Expenditures by State",
-                        subtitle = "FY 1998 - 2013"))
+                   scale_y_continuous(labels = scales::percent))
 
 # Figure 4 ####
 ## @knitr Figure.4
@@ -159,9 +149,8 @@ avg_props_id %>%
                      labels = c("Ten highest spending\nstates in FY 1998", "Ten lowest spending\nstates in FY 1998")) +
   scale_alpha_manual(values = c(.4, .8, .8),
                      guide = "none") +
-  labs(title = "Figure 4 - Propotional Basic Assistance Expenditures by Spending Level",
-       subtitle = "FY 1998 and 2013",
-       caption = "South Carolina and Tennessee removed due to negative reported basic assistance expenditures in FY 1998. See appendix.") +
+  labs(caption = "South Carolina and Tennessee removed due to negative reported basic assistance expenditures in FY 1998. 
+See the appendix for more information.") +
   theme(plot.caption=element_text(size=6),
         text = element_text(family = "Times New Roman"))
 
@@ -224,9 +213,7 @@ time_effects %>%
   geom_errorbar(aes(x = year,
                     ymin = coefficients.Estimate - 1.96*coefficients.Std..Error,
                     ymax = coefficients.Estimate + 1.96*coefficients.Std..Error)) +
-  labs(title = "Figure 5 - Coefficients of Time Fixed Effects from Model 4",
-       subtitle = "FY 1999 - 2013",
-       caption = "Error bars represent 95% confidence intervals") +
+  labs(caption = "Error bars represent 95% confidence intervals") +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         text = element_text(family = "Times New Roman"))
@@ -257,3 +244,13 @@ stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
           column.sep.width = "1pt",
           font.size = "small",
           type = "latex")
+
+
+
+
+
+
+
+
+
+
