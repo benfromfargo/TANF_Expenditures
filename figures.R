@@ -31,17 +31,16 @@ ggplot(ann_means_vis, aes(year, value, fill = category)) +
                      expand = c(0,.02)) +
   scale_fill_manual(values = c("#cccccc", "#666666", "#000000"),
                     labels = c("Other", 
-                               "Aid that is not basic assistance", 
+                               "Work-related, in-kind, and short-term benefits", 
                                "Basic assistance"),
                     name = "Type of Spending") +
   theme(panel.grid.major = element_blank(), axis.title.x = element_blank(), 
         panel.grid.minor = element_blank(), axis.title.y = element_blank(),
-        panel.background = element_blank(),
-        text = element_text(family = "Times New Roman"),
-        plot.caption = element_text(hjust = 0)) +
-  labs(caption = "See Table 2 in the appendix for category groups. Percentages may not add up to 100% in a given fiscal year 
-due to the removal of outlier values (i.e., proportional expenditure values that remain above 100% or below 0% after 
-calculating moving averages). See the appendix for more information.") 
+        panel.background = element_blank(), legend.title = element_text(size = 9),
+        legend.text = element_text(size = 8), plot.caption = element_text(size = 7, hjust = 0),
+        text = element_text(family = "Times New Roman")) +
+  labs(caption = "Note: See Table 3 in the appendix for category groups. Percentages may not add up to 100% in a given fiscal year due to the removal of outlier values. 
+See appendix for more information.") 
 
 # Figure 2 ####
 ## @knitr Figure.2
@@ -49,11 +48,11 @@ x <- ann_means %>%
   filter(category != "ba" & category != "admin" & category != "other" & category != "prior" & category != "ssbg") %>%
   mutate(label = ifelse(year == "2013", category, NA)) %>% 
   mutate(label = case_when(
-    label == "cc" ~ "    Child care",
-    label == "work" ~ "    Work-related activities and supports", 
-    label == "pregnancy" ~ "    Marriage and pregnancy programs",
-    label == "tax" ~ "    Refundable tax credits", 
-    label == "shortben" ~ "    Diversion benefits")) %>% 
+    label == "cc" ~ "     Child care",
+    label == "work" ~ "     Work-related activities and supports", 
+    label == "pregnancy" ~ "     Marriage and pregnancy programs",
+    label == "tax" ~ "     Refundable tax credits", 
+    label == "shortben" ~ "     Diversion benefits")) %>% 
   ggplot(aes(year, value, group = category)) +
   geom_line() +
   scale_y_continuous(labels = scales::percent,
@@ -63,7 +62,7 @@ x <- ann_means %>%
             na.rm = TRUE,
             hjust = 0, 
             family = "Times New Roman",
-            size = 4) +
+            size = 3) +
   theme(plot.margin = unit(c(1,12,1,1), "lines"),
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
@@ -149,10 +148,10 @@ avg_props_id %>%
                      labels = c("Ten highest spending\nstates in FY 1998", "Ten lowest spending\nstates in FY 1998")) +
   scale_alpha_manual(values = c(.4, .8, .8),
                      guide = "none") +
-  labs(caption = "South Carolina and Tennessee removed due to negative reported basic assistance expenditures in FY 1998. 
-See the appendix for more information.") +
-  theme(plot.caption=element_text(size=6),
-        text = element_text(family = "Times New Roman"))
+  labs(caption = "Note: South Carolina and Tennessee removed due to negative reported basic assistance expenditures in FY 1998. See appendix for more information.") +
+  theme(plot.caption=element_text(size=7, hjust = 0), legend.text = element_text(size = 8),
+        text = element_text(family = "Times New Roman"), legend.key = element_rect(size = 5),
+        legend.key.size = unit(1.5, 'lines'))
 
 # Table 1 ####
 ## @knitr Table.1
@@ -213,10 +212,11 @@ time_effects %>%
   geom_errorbar(aes(x = year,
                     ymin = coefficients.Estimate - 1.96*coefficients.Std..Error,
                     ymax = coefficients.Estimate + 1.96*coefficients.Std..Error)) +
-  labs(caption = "Error bars represent 95% confidence intervals") +
+  labs(caption = "Note: Error bars represent 95% confidence intervals") +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
-        text = element_text(family = "Times New Roman"))
+        text = element_text(family = "Times New Roman"),
+        plot.caption=element_text(size=7, hjust = 0))
 
 # Table A.1 ####
 ## @knitr Table A.1

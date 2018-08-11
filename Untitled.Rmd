@@ -8,6 +8,9 @@ header-includes:
   - \rhead{Goehring}
   - \thispagestyle{empty}
   - \usepackage[hang,flushmargin]{footmisc} 
+  - \makeatletter
+  - \setlength{\@fptop}{0pt}
+  - \makeatother
   - \usepackage[format=hang,font={normalsize,bf}]{caption}
   - \floatplacement{figure}{H}
 output: 
@@ -35,6 +38,7 @@ library(readxl)
 library(stats)
 library(grid)
 library(extrafont)
+library(bookdown)
 
 source("TANF_clean.R")
 read_chunk("figures.R")
@@ -51,7 +55,7 @@ TANF provides each state a capped block grant and the discretion to create its o
 In a particularly broad delegation of authority, the PRWORA empowers states to spend federal and MOE funds in any manner “reasonably calculated” to realize one of TANF's four statutory goals: 1) Provide assistance to needy families so that children may be cared for in their own homes or in the homes of relatives; 2) End the dependence of needy parents on government benefits by promoting job preparation, work, and marriage; 3) Prevent and reduce the incidence of out-of-wedlock pregnancies and establish annual numerical goals for preventing and reducing the incidence of these pregnancies; and 4) Encourage the formation and maintenance of two-parent families [@PersonalResponsibilityWork1996]. TANF’s broad statutory goals allow states to fund a variety of programs and policy areas with TANF funds. Broadly, states may spend federal and MOE funds on assistance or non-assistance. TANF assistance includes basic assistance payments and child care and transportation benefits for families without an employed adult. TANF's time limits on benefit receipt and activity and child support requirements only pertain to recipients of TANF assistance. States may also spend federal and MOE funds on non-assistance, which includes any other spending justifiable under one of TANF's statuatory goals. Non-assistance spending does not impose federal requirements on states or recipients and includes a broady array of expenditures, including refundable tax credits, work training programs, and family planning services [@falkTemporaryAssistanceNeedy2017]. 
 
 ###II
-For this analysis, we group TANF expenditures into ten spending categories.^[ See Table 3 in the appendix for the full list and description of categories.] Figure 1 aggregates those ten categories into three broad types of spending: basic assistance, aid that is not basic assistance, and other. In FY 1998, on average, 55% of total TANF expenditures were spent on basic assistance, with 19.7% spent on aid that is not basic assistance, which includes spending on child care, marriage and pregnancy programs, and refundable tax credits, and 26.4% on other spending, such as administrative costs and transfers to other programs.^[ The “Other” spending type includes expenditures justified under the AFDC program that preceded TANF, “Other” Nonassistance, transfers to the Social Services Block Grant Program, and costs related to administration and systems. For more information on these specific categories see [@derrUnderstandingTwoCategories2009; @SocialServicesBlock2015].] Average proportional basic assistance expenditures decreased from comprising an average of 55% of states’ total TANF spending in FY 1998 to 23.6% in FY 2013. As states decreased basic assistance spending, they began to fund other types of aid. In FY 1998, the average state spent 19.7% of its TANF funds on other types of aid, largely consisting of services for low-income families, in-kind benefits, or one-time cash benefits meant to meet short-term needs. By FY 2013, states spent 43.2% of TANF funds on these programs, taking the bulk of the funds freed up by the reduction in basic assistance spending.
+For this analysis, we group TANF expenditures into ten spending categories.^[ See Table 3 in the appendix for category groups.] Figure 1 aggregates those ten categories into three broad types of spending: basic assistance, aid that is not basic assistance, and other. In FY 1998, on average, 55% of total TANF expenditures were spent on basic assistance, with 19.7% spent on aid that is not basic assistance, which includes spending on child care, marriage and pregnancy programs, and refundable tax credits, and 26.4% on other spending, such as administrative costs and transfers to other programs.^[ The “Other” spending type includes expenditures justified under the AFDC program that preceded TANF, “Other” Nonassistance, transfers to the Social Services Block Grant Program, and costs related to administration and systems. For more information on these specific categories see [@derrUnderstandingTwoCategories2009; @SocialServicesBlock2015].] Average proportional basic assistance expenditures decreased from comprising an average of 55% of states’ total TANF spending in FY 1998 to 23.6% in FY 2013. As states decreased basic assistance spending, they began to fund other types of aid. In FY 1998, the average state spent 19.7% of its TANF funds on other types of aid, largely consisting of services for low-income families, in-kind benefits, or one-time cash benefits meant to meet short-term needs. By FY 2013, states spent 43.2% of TANF funds on these programs, taking the bulk of the funds freed up by the reduction in basic assistance spending.
 
 ``` {r figure1, echo = FALSE, fig.align = "center", fig.cap = "Mean Proportional TANF Spending by Type, FY 1998 - 2013"}
 <<Figure.1>>
@@ -61,11 +65,11 @@ The specific types of spending that comprise aid that is not basic assistance in
 	
 While not comprising as significant a portion of state spending, the remaining categories that comprise non-basic assistance spending increased at a steady rate between FY 1998 and 2013. In FY 1998, the average state spent no TANF funds on refundable tax credits for low-income families, diversion benefits (which usually provide one-time lump sum payments to families to help them avoid entering the state’s TANF program), and marriage and pregnancy programs aimed at supporting healthy marriages and educating families about family planning. By FY 2013, however, the three categories collectively comprised 14.7% of the average state’s TANF spending, with marriage and pregnancy programs alone comprising 7.2% 
 
-``` {r figure2, echo = FALSE, fig.align = "center", fig.cap = "Mean Proportional Aid that is not Basic Assistance Expenditures, FY 1998 - 2013"}
+``` {r figure2, echo = FALSE, fig.align = "center", fig.cap = "Mean Proportional Expenditures on work-related, in-kind, and short-term benefits, FY 1998 - 2013"}
 <<Figure.2>>
 ```
 
-The discussion so far has focused on national trends, average annual proportional expenditures, and aggregated values. With the broad devolution of policymaking power under TANF, however, the degree to which states participated in the trend of spending less on basic assistance may differ in important and interesting ways. In order to more closely examine state-level trends over time, Figure 3 provides annual box plots of basic assistance spending.^[ The boxplots in Figure 4 display annual median expenditures (marked by the thick black line) and the first and third quartiles (the upper and lower ends of the “box”). The lines protruding from the boxes equal the distance between the first or third quartile and the value furthest from the respective quartile that does not exceed 1.5 times the difference between the first and third quartiles. Expenditure values either greater or less than 1.5 times the difference between the first and third quartiles are marked as outliers.] Over time, the distribution of state spending remained relatively constant as it shifted downward. The standard deviations of annual proportional basic assistance spending did not follow any clear trend, varying between 10.1% (in FY 2008) and 13.8% in (FY 1999). States with especially high levels of basic assistance spending also took part in the overall downward shift in spending. None of the states that spent the greatest portions of their grants on basic assistance between FY 2008 and 2013 spent more than the 75th percentile of proportional basic assistance expenditures in FY 1998 (62.6%), and Maine was the only state to exceed the median level of basic assistance spending in FY 1998 (53.1%).
+The discussion so far has focused on national trends, average annual proportional expenditures, and aggregated values. With the broad devolution of policymaking power under TANF, however, the degree to which states participated in the trend of spending less on basic assistance may differ in important and interesting ways. In order to more closely examine state-level trends over time, Figure 3 provides annual box plots of basic assistance spending.^[ The boxplots in Figure 3 display annual median expenditures (marked by the thick black line) and the first and third quartiles (the upper and lower ends of the “box”). The lines protruding from the boxes equal the distance between the first or third quartile and the value furthest from the respective quartile that does not exceed 1.5 times the difference between the first and third quartiles. Expenditure values either greater or less than 1.5 times the difference between the first and third quartiles are marked as outliers.] Over time, the distribution of state spending remained relatively constant as it shifted downward. The standard deviations of annual proportional basic assistance spending did not follow any clear trend, varying between 10.1% (in FY 2008) and 13.8% in (FY 1999). States with especially high levels of basic assistance spending also took part in the overall downward shift in spending. None of the states that spent the greatest portions of their grants on basic assistance between FY 2008 and 2013 spent more than the 75th percentile of proportional basic assistance expenditures in FY 1998 (62.6%), and Maine was the only state to exceed the median level of basic assistance spending in FY 1998 (53.1%).
 
 ``` {r figure3, echo = FALSE, warning = FALSE, fig.align = "center", fig.cap = "Boxplots of Proportional Basic Assistance Expenditures by State, FY 1998 - 2013"}
 <<Figure.3>>
@@ -73,7 +77,7 @@ The discussion so far has focused on national trends, average annual proportiona
 
 Although the overall variation of the distribution remained largely constant as states decreased basic assistance spending, the relative rank order of states within the distribution was not static. As states decreased basic assistance spending, the relative order of states was reshuffled, with relatively higher spending states becoming relatively lower spending states and vice versa (Figure 4). For instance, of the ten states that spent the greatest portion of total TANF funds on basic assistance in FY 1998, only three – Alaska, California, and Hawaii – remained among the ten highest spending states in FY 2013. Illinois, another high-spending state in FY 1998, shifted enough spending from basic assistance toward other policy areas to be among the ten lowest spending states in FY 2013. Similarly, states that spent relatively less on basic assistance in FY 1998 shifted their spending relative to their peers. Indiana and Oklahoma were the only states to be among the ten lowest spending states in both FY 1998 and FY 2013. On the other hand, Virginia’s relatively small decrease in proportional basic assistance spending meant it was among the ten lowest spending states in FY 1998 and the ten highest spending states in FY 2013. 
 
-``` {r figure4, echo = FALSE, fig.align = "center", fig.cap = "Propotional Basic Assistance Expenditures by Spending Level, FY 1998 - 2013"}
+``` {r figure4, echo = FALSE, fig.align = "center", fig.cap = "Proportional Basic Assistance Expenditures in FY 1998 and 2013"}
 <<Figure.4>>
 ```
 
@@ -187,18 +191,19 @@ After synthesizing the original reporting categories into aggregate categories a
 ``` {r table3, echo = FALSE, results = 'asis'}
 library(kableExtra)
 
-column_1 <- c("Basic assistance", rep("Aid that is not basic assistance", 12),
-              rep("Other", 6))
+column_1 <- c("Basic assistance", rep("Work-related, in-kind, and short-term benefits", 12), rep("Other", 6))
 
 column_2 <- c("Basic assistance", rep("Child care", 3), rep("Work-related activities and supports", 4), rep("Refundable tax credits", 2), "Diversion benefits", rep("Marriage and pregnancy", 2), rep("Expenditures under prior law", 2), "Other non-assistance", rep("Administration and systems", 2), "Social Services Block Grant (SSBG)")
 
-column_3 <- c("Basic assistance", "Child care (assistance)", "Child care (non-assistance)", "Transfers to the Child Care Development Fund", "Transportation and supportive services (assistance)", "Transportation (non-assistance)", "Work-related activities and expenses", "Individual development accounts", "Refundable earned income tax credit", "Other refundable tax credits", "Non-recurrent short-Term benefits", "Prevention of out of wedlock pregnancies", "Two-parent family formation and maintenance", "Assistance under prior law", "Non-assistance under prior law", "Other", "Administration", "Systems", "Transfers to the Social Services Block Grant")
+column_3 <- c("Basic assistance", "Child care (assistance)", "Child care (non-assistance)", "Transfers to the Child Care Development Fund", "Transportation and supportive services (assistance)", "Transportation (non-assistance)", "Work-related activities and expenses", "Individual development accounts", "Refundable earned income tax credit", "Other refundable tax credits", "Non-recurrent short-term benefits", "Prevention of out of wedlock pregnancies", "Two-parent family formation and maintenance", "Assistance under prior law", "Non-assistance under prior law", "Other", "Administration", "Systems", "Transfers to the Social Services Block Grant")
 
 my_table <- tibble(column_1, column_2, column_3)
 
 kable(my_table, "latex", align = "l", booktabs = T, caption = "TANF Spending Categories", col.names = c("Spending Types (used in Figure 3)", "Aggregate Categories", "ACF-196 Reporting Categories")) %>% 
+  column_spec(1:3, width = "5cm") %>% 
   collapse_rows(columns = 1:2, latex_hline = "full", valign = "middle") %>% 
-    kable_styling(font_size = 10)
+    kable_styling(font_size = 10) %>% 
+  row_spec(0, bold = T)
 ```
 
 \pagebreak
