@@ -246,7 +246,7 @@ ind_data <- read_excel("Input Data/TANF_ind-variables.xlsx", sheet = "Ind. Varia
 ind_data <- gather(ind_data, key = category, value = value, -STATE) %>% 
   separate(category, into = c("category", "year"), sep = " ") 
 
-# Increase all independent variable years by 1
+# Increase all independent variable years by 1 to effectively lag the IVs one year behind the DV
 ind_data <- mutate(ind_data, year = as.numeric(year) + 1) %>% 
   filter(!year == 2014 & !year == 2015) %>% 
   mutate(year = as.character(year))

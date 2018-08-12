@@ -36,9 +36,6 @@ case_raw %>%
   scale_y_continuous(labels = scales::comma, limits = c(0, 3100000)) 
 
 
-
-
-
 case_totals <- case_raw %>% 
   filter(category == "families") %>% 
   select(State, year, total = value)
@@ -60,10 +57,6 @@ case_raw %>%
   ggplot() +
   geom_line(aes(year, avg_raw)) +
   geom_line(aes(year, total))
-
-
-
-
 
 
 # Average Monthly TANF Families by Family Type ####
