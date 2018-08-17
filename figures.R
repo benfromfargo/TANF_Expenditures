@@ -145,7 +145,8 @@ avg_props_id %>%
   scale_color_manual(values = c("#cccccc", "#666666", "#000000"), 
                      name = element_blank(), 
                      breaks = c(1, 2),
-                     labels = c("Ten highest spending\nstates in FY 1998", "Ten lowest spending\nstates in FY 1998")) +
+                     labels = c("Ten states with the greatest\nshare of TANF funds spent on\nbasic assistance in FY 1998",
+                                "Ten states with the smallest\nshare of TANF funds spent on\nbasic assistance in FY 1998")) +
   scale_alpha_manual(values = c(.4, .8, .8),
                      guide = "none") +
   labs(caption = "Note: South Carolina and Tennessee removed due to negative reported basic assistance expenditures in FY 1998. See appendix for more information.") +
@@ -184,7 +185,7 @@ p4 <- plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability +
 stargazer(p1, p2, p3, p4,
           title = "Regression Output",
           column.labels = c("Model 1", "Model 2", "Model 3", "Model 4"),
-          covariate.labels = c(NA, NA, "fiscal stability", NA, NA, NA, NA, "pcpi regional"),
+          covariate.labels = c("african americans", NA, "fiscal stability", NA, NA, NA, NA, "pcpi regional"),
           dep.var.labels = "Basic Assistance Expenditures as a Percentage of Total TANF Expenditures",
           omit = "year",
           header = FALSE,
@@ -212,13 +213,13 @@ time_effects %>%
   geom_errorbar(aes(x = year,
                     ymin = coefficients.Estimate - 1.96*coefficients.Std..Error,
                     ymax = coefficients.Estimate + 1.96*coefficients.Std..Error)) +
-  labs(caption = "Note: Error bars represent 95% confidence intervals") +
+  labs(caption = "Note: Error bars represent 95% confidence intervals.") +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         text = element_text(family = "Times New Roman"),
         plot.caption=element_text(size=7, hjust = 0))
 
-# Table A.1 ####
+# Table 2 ####
 ## @knitr Table A.1
 p_regress <- function(data) {
   plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability + caseload + 

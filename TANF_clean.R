@@ -92,3 +92,12 @@ props_avg_pdata <- join_data(props_avg, ind_data)
 props_avg_pdata[, 3:12] <- sapply(props_avg_pdata[, 3:12], to_percent)
 props_avg_pdata <- pdata.frame(props_avg_pdata, index = c("STATE", "year"))
 
+
+
+
+
+
+ind_data %>% 
+  group_by(year) %>% 
+  summarise(mean = mean(hispanics, na.rm = TRUE))
+
