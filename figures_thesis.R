@@ -7,7 +7,7 @@ library(stargazer)
 library(extrafont)
 library(plm)
 
-# Figure 1####
+# Figure 1 ####
 files <- list.files("Caseloads/")
 files <- str_c("Caseloads/", files)
 
@@ -49,40 +49,59 @@ case_raw %>%
                      labels = c("1", "1.5", "2", "2.5", "3"))
 ggsave("Figures and Tables/Figure1.pdf", height = 5, width = 6.5, units = "in")  
 
-# Some calcs for text 
-test <- case_raw %>% 
-  filter(category != "families") %>% 
-  group_by(year) %>% 
-  mutate(total = sum(value)) %>% 
-  ungroup() %>% 
-  mutate(prop = (value/total) * 100) %>% 
-  filter(category == "0.families")
+# Figure 2 ####
+cpi <- tribble(
+  ~year, ~annual_cpi,
+  "1997",	169.5,
+  "1998",	173.4,
+  "1999",	177.0,
+  "2000",	181.3,
+  "2001",	186.1,
+  "2002",	190.5,
+  "2003",	193.2,
+  "2004",	196.6,
+  "2005",	200.9,
+  "2006",	205.9,
+  "2007",	210.729,
+  "2008",	215.572,
+  "2009",	219.235,
+  "2010",	221.337,
+  "2011",	225.008,
+  "2012",	229.755,
+  "2013",	233.806,
+  "2014",	237.897
+)
 
+raw_data <- left_join(raw_data, cpi, by = "year")
+anti_join(raw_data, cpi, by = "year")
 
-
-
-
-# Figure 2####
-raw_data %>%
+raw_data <- raw_data %>% 
+  mutate(dec_form = annual_cpi / 237.897) %>% 
+  mutate(real_exp = value / dec_form) %>% 
   group_by(category, year) %>% 
-  filter(!(year %in% c("1997", "2014"))) %>% 
-  mutate(category_total = sum(value)) %>% 
-  ungroup() %>% 
+  mutate(category_total = sum(real_exp)) %>% 
+  ungroup()
+
+raw_data %>%
+  filter(year != "1997") %>% 
   filter(category == "ba") %>% 
   ggplot(aes(year, category_total, group = category)) +
   geom_line() +
   labs(title = "Figure 2 - Aggregate Reported TANF Spending on Basic Assistance", 
-       subtitle = "FY 1998 - 2013",
-       caption = "In billions of dollars, not adjusted for inflation") +
+       subtitle = "FY 1998 - 2014",
+       caption = "In billions of 2014 dollars") +
   scale_x_discrete(breaks = c("2000", "2005", "2010")) + 
-  scale_y_continuous(breaks = seq(8000000000, 14000000000, 2000000000), 
-                     limits = c(8000000000, 14000000000),
-                     labels = c("$8", "$10", "$12", "$14")) +
+  scale_y_continuous(breaks = seq(10000000000, 20000000000, by = 2000000000), 
+                     labels = c("$10", "$12", "$14", "$16", "$18", "$20")) +
   theme(axis.title.x = element_blank(), 
         axis.title.y = element_blank())
 ggsave("Figures and Tables/Figure2.pdf", height = 5, width = 6.5, units = "in")  
 
 # Figure 3 ####
+ann_means <- aggregate(avg_props[, 3:12], list(avg_props$year), mean, na.rm = TRUE) %>% 
+  rename(year = `Group.1`) 
+ann_means <- gather(ann_means, key = "category", value = "value", -year)
+
 ann_means_vis <- spread(ann_means, key = "category", value = "value")
 
 ann_means_vis <- ann_means_vis %>%

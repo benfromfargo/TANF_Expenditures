@@ -9,29 +9,21 @@ library(plm)
 options(scipen = 999)
 
 
-# Clean Expenditure Data #####
+# Clean Expenditure Data ####
 raw_data <- read.xlsx("Input Data/TANF_expenditures.xlsx", sheet = "Raw Values")
-raw_data <- gather(raw_data, key = "category", value = "value", -STATE) %>% 
+raw_data <- gather(raw_data, key = "category", value = "value", -STATE) %>%
   arrange(STATE) %>% 
-  separate(category, into = c("category", "year"), sep = "_")
-
-raw_totals <- raw_data %>% 
-  filter(category == "total") %>% 
-  select(STATE, year, total = value)
-
-raw_data <- raw_data %>% 
-  filter(category != "total")
-
-raw_data <- raw_data %>% 
-  left_join(raw_totals, raw_data, by = c("STATE", "year"))
-anti_join(raw_totals, raw_data, by = c("STATE", "year"))
+  separate(category, into = c("category", "year"), sep = "_") %>% 
+  group_by(STATE, year) %>% 
+  mutate(total_state = sum(value)) %>% 
+  ungroup()
 
 props <- raw_data %>% 
-  mutate(value = value / total) %>% 
-  select(-total)
+  mutate(value = value / total_state) %>% 
+  select(-total_state)
 
-avg_props <- data_frame(STATE = props$STATE, category = props$category, 
-                        year = props$year, value = rollmean(props[, 4], 3, fill = NA)) %>% 
+avg_props <- props %>%
+  mutate(value = rollmean(value, 3, fill = NA)) %>% 
   filter(!(year %in% c("1997", "2014"))) %>% 
   mutate(value = round(value, 10)) %>% 
   mutate(value = ifelse(value > 1 | value < 0, NA, value)) %>% 
@@ -43,20 +35,14 @@ props <- props %>%
   mutate(value = ifelse(value > 1 | value < 0, NA, value)) %>% 
   spread(category, value)
 
-props_avg <- data_frame(STATE = raw_data$STATE, category = raw_data$category, 
-                        year = raw_data$year, value = rollmean(raw_data[, 4], 3, fill = NA),
-                        total = raw_data$total)
-props_avg <- props_avg %>% 
+props_avg <- raw_data %>% 
+  mutate(value = rollmean(value, 3, fill = NA)) %>% 
   filter(!(year %in% c("1997", "2014"))) %>%
-  mutate(value = value/total) %>%
+  mutate(value = value/total_state) %>%
   mutate(value = round(value, 10)) %>%
   mutate(value = ifelse(value > 1 | value < 0, NA, value)) %>% 
-  select(-total) %>% 
+  select(-total_state) %>% 
   spread(category, value)
-
-ann_means <- aggregate(avg_props[, 3:12], list(avg_props$year), mean, na.rm = TRUE) %>% 
-  rename(year = `Group.1`) 
-ann_means <- gather(ann_means, key = "category", value = "value", -year)
 
 # Clean Independent Variables #####
 ind_data <- read_excel("Input Data/TANF_ind-variables.xlsx", sheet = "Ind. Variables - FINAL", na = "NA")
@@ -91,13 +77,4 @@ avg_props_pdata <- pdata.frame(avg_props_pdata, index = c("STATE", "year"))
 props_avg_pdata <- join_data(props_avg, ind_data)
 props_avg_pdata[, 3:12] <- sapply(props_avg_pdata[, 3:12], to_percent)
 props_avg_pdata <- pdata.frame(props_avg_pdata, index = c("STATE", "year"))
-
-
-
-
-
-
-ind_data %>% 
-  group_by(year) %>% 
-  summarise(mean = mean(hispanics, na.rm = TRUE))
 
