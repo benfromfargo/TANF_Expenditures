@@ -9,20 +9,22 @@ library(plm)
 
 # Figure 1 ####
 ## @knitr Figure.1
+ann_means <- avg_props %>% 
+  gather("category", "value", -STATE, -year) %>% 
+  group_by(year, category) %>% 
+  summarise(value = mean(value, na.rm = TRUE))
+
 ann_means_vis <- spread(ann_means, key = "category", value = "value")
 
 ann_means_vis <- ann_means_vis %>%
-  mutate(service = (ann_means_vis$cc + ann_means_vis$pregnancy +
-                      ann_means_vis$shortben + ann_means_vis$tax +
-                      ann_means_vis$work)) %>% 
-  mutate(other2 = (ann_means_vis$admin + ann_means_vis$other +
-                     ann_means_vis$prior + ann_means_vis$ssbg)) %>% 
+  mutate(service = cc + pregnancy + shortben + tax + work) %>% 
+  mutate(other2 = admin + other + prior + ssbg) %>% 
   select(year, ba, service, other = other2)
 
 ann_means_vis <- gather(ann_means_vis, key = "category", value = "value", -year)
 
 ann_means_vis <- ann_means_vis %>% 
-  mutate(category = factor(ann_means_vis$category, levels = c("other", "service", "ba")))
+  mutate(category = factor(category, levels = c("other", "service", "ba")))
 
 ggplot(ann_means_vis, aes(year, value, fill = category)) +
   geom_col() +
@@ -31,7 +33,7 @@ ggplot(ann_means_vis, aes(year, value, fill = category)) +
                      expand = c(0,.02)) +
   scale_fill_manual(values = c("#cccccc", "#666666", "#000000"),
                     labels = c("Other", 
-                               "Work-related, in-kind, and short-term benefits", 
+                               "Work-related, in-kind,\nand short-term benefits", 
                                "Basic assistance"),
                     name = "Type of Spending") +
   theme(panel.grid.major = element_blank(), axis.title.x = element_blank(), 
@@ -151,8 +153,8 @@ avg_props_id %>%
                      guide = "none") +
   labs(caption = "Note: South Carolina and Tennessee removed due to negative reported basic assistance expenditures in FY 1998. See appendix for more information.") +
   theme(plot.caption=element_text(size=7, hjust = 0), legend.text = element_text(size = 8),
-        text = element_text(family = "Times New Roman"), legend.key = element_rect(size = 5),
-        legend.key.size = unit(1.5, 'lines'))
+        text = element_text(family = "Times New Roman"), legend.key = element_rect(size = 7),
+        legend.key.size = unit(2, 'lines'))
 
 # Table 1 ####
 ## @knitr Table.1

@@ -14,6 +14,7 @@ raw_data <- read.xlsx("Input Data/TANF_expenditures.xlsx", sheet = "Raw Values")
 raw_data <- gather(raw_data, key = "category", value = "value", -STATE) %>%
   arrange(STATE) %>% 
   separate(category, into = c("category", "year"), sep = "_") %>% 
+  filter(category != "total") %>% 
   group_by(STATE, year) %>% 
   mutate(total_state = sum(value)) %>% 
   ungroup()

@@ -35,7 +35,7 @@ case_raw %>%
   filter(category == "families" | category == "0.families") %>% 
   ggplot(aes(year, value, group = category, color = category)) +
   geom_line() +
-  labs(title = "Figure 1 - Families Receiving TANF Assistance in an Average Month",
+  labs(title = "Figure 1: Families Receiving TANF Assistance in an Average Month",
        subtitle = "1998 - 2017",
        caption = "In millions of families") +
   scale_colour_manual(labels = c("Child-only families", "All families"), 
@@ -44,7 +44,8 @@ case_raw %>%
                       values = c("#666666", "#000000")) +  
   scale_x_discrete(breaks = c("2000", "2005", "2010", "2015")) + 
   theme(axis.title.x = element_blank(), 
-        axis.title.y = element_blank()) +
+        axis.title.y = element_blank(),
+        text = element_text(family = "Times New Roman")) +
   scale_y_continuous(breaks = c(1000000, 1500000, 2000000, 2500000, 3000000),
                      labels = c("1", "1.5", "2", "2.5", "3"))
 ggsave("Figures and Tables/Figure1.pdf", height = 5, width = 6.5, units = "in")  
@@ -87,35 +88,35 @@ raw_data %>%
   filter(category == "ba") %>% 
   ggplot(aes(year, category_total, group = category)) +
   geom_line() +
-  labs(title = "Figure 2 - Aggregate Reported TANF Spending on Basic Assistance", 
+  labs(title = "Figure 2: Aggregate Reported TANF Spending on Basic Assistance", 
        subtitle = "FY 1998 - 2014",
        caption = "In billions of 2014 dollars") +
   scale_x_discrete(breaks = c("2000", "2005", "2010")) + 
   scale_y_continuous(breaks = seq(10000000000, 20000000000, by = 2000000000), 
                      labels = c("$10", "$12", "$14", "$16", "$18", "$20")) +
   theme(axis.title.x = element_blank(), 
-        axis.title.y = element_blank())
+        axis.title.y = element_blank(),
+        text = element_text(family = "Times New Roman"))
 ggsave("Figures and Tables/Figure2.pdf", height = 5, width = 6.5, units = "in")  
 
 # Figure 3 ####
-ann_means <- aggregate(avg_props[, 3:12], list(avg_props$year), mean, na.rm = TRUE) %>% 
-  rename(year = `Group.1`) 
-ann_means <- gather(ann_means, key = "category", value = "value", -year)
+
+ann_means <- avg_props %>% 
+  gather("category", "value", -STATE, -year) %>% 
+  group_by(year, category) %>% 
+  summarise(value = mean(value, na.rm = TRUE))
 
 ann_means_vis <- spread(ann_means, key = "category", value = "value")
 
 ann_means_vis <- ann_means_vis %>%
-  mutate(service = (ann_means_vis$cc + ann_means_vis$pregnancy +
-                      ann_means_vis$shortben + ann_means_vis$tax +
-                      ann_means_vis$work)) %>% 
-  mutate(other2 = (ann_means_vis$admin + ann_means_vis$other +
-                     ann_means_vis$prior + ann_means_vis$ssbg)) %>% 
+  mutate(service = cc + pregnancy + shortben + tax + work) %>% 
+  mutate(other2 = admin + other + prior + ssbg) %>% 
   select(year, ba, service, other = other2)
 
 ann_means_vis <- gather(ann_means_vis, key = "category", value = "value", -year)
 
 ann_means_vis <- ann_means_vis %>% 
-  mutate(category = factor(ann_means_vis$category, levels = c("other", "service", "ba")))
+  mutate(category = factor(category, levels = c("other", "service", "ba")))
 
 ggplot(ann_means_vis, aes(year, value, fill = category)) +
   geom_col() +
@@ -124,7 +125,7 @@ ggplot(ann_means_vis, aes(year, value, fill = category)) +
                      expand = c(0,.02)) +
   scale_fill_manual(values = c("#cccccc", "#666666", "#000000"),
                     labels = c("Other", 
-                               "Work-related, in-kind, and short-term benefits", 
+                               "Work-related, in-kind,\nand short-term benefits", 
                                "Basic assistance"),
                     name = "Type of Spending") +
   theme(panel.grid.major = element_blank(), axis.title.x = element_blank(), 
@@ -135,7 +136,7 @@ ggplot(ann_means_vis, aes(year, value, fill = category)) +
   labs(title = "Figure 3: Mean Proportional TANF Spending by Type",
        subtitle = "FY 1998 - 2013",
         caption = "Note: See Table 3 in the appendix for category groups. Percentages may not add up to 100% in a given fiscal year due to the removal of outlier values. 
-        See appendix for more information.")
+See appendix for more information.")
 ggsave("Figures and Tables/Figure3.pdf", height = 5, width = 6.5, units = "in")  
 
 # Figure 4 ####
@@ -283,7 +284,7 @@ p4 <- plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability +
           effect = "individual")
 
 stargazer(p1, p2, p3, p4,
-          title = "Regression Output",
+          title = "Table 1: Regression Output",
           column.labels = c("Model 1", "Model 2", "Model 3", "Model 4"),
           covariate.labels = c("african americans", NA, "fiscal stability", NA, NA, NA, NA, "pcpi regional"),
           dep.var.labels = "Basic Assistance Expenditures as a Percentage of Total TANF Expenditures",
@@ -335,7 +336,7 @@ fixed_props_avg <- p_regress(props_avg_pdata)
 
 stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
           column.labels = c("Raw Percentages", "Moving Averages of Percentages", "Percentages of Moving Averages"),
-          title = "Comparing Regression Output Across Three Data Cleaning Methods", 
+          title = "Table 2: Comparing Regression Output Across Three Data Cleaning Methods", 
           covariate.labels = c(NA, NA, "fiscal stability", NA, NA, NA, NA, "pcpi regional"),
           omit = "year",
           omit.labels = c("Time Fixed Effects"),
@@ -348,13 +349,3 @@ stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
           font.size = "small",
           type = "latex",
           out = "Figures and Tables/Table2.html")
-
-
-
-
-
-
-
-
-
-
