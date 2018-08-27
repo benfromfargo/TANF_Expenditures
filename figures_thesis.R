@@ -135,7 +135,7 @@ ggplot(ann_means_vis, aes(year, value, fill = category)) +
         text = element_text(family = "Times New Roman")) +
   labs(title = "Figure 3: Mean Proportional TANF Spending by Type",
        subtitle = "FY 1998 - 2013",
-        caption = "Note: See Table 3 in the appendix for category groups. Percentages may not add up to 100% in a given fiscal year due to the removal of outlier values. 
+        caption = "Note: See Table A.1 in the appendix for category groups. Percentages may not add up to 100% in a given fiscal year due to the removal of outlier values. 
 See appendix for more information.")
 ggsave("Figures and Tables/Figure3.pdf", height = 5, width = 6.5, units = "in")  
 
@@ -163,13 +163,13 @@ x <- ann_means %>%
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         text = element_text(family = "Times New Roman")) + 
-  labs(title = "Figure 4: Mean Proportional Expenditures on Work-Related,\nIn-Kind, and Short-Term Benefits",
+  labs(title = "Figure 4: Mean Expenditures on Work-Related, In-Kind, and Short-Term Benefits",
        subtitle = "FY 1998 - 2013")
 
 gt <- ggplotGrob(x)
 gt$layout$clip[gt$layout$name == "panel"] <- "off"
 grid.draw(gt)
-ggsave("Figures and Tables/Figure4.pdf", gt, height = 5, width = 6.5, units = "in")  
+ggsave("Figures and Tables/Figure4.pdf", gt, height = 5, width = 6.7, units = "in")  
 
 # Figure 5 ####
 avg_props_id <- avg_props %>% 
