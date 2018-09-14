@@ -11,29 +11,35 @@ library(plm)
 files <- list.files("Caseloads/")
 files <- str_c("Caseloads/", files)
 
-# Different file extensions
-files_xls <- files[1:18]
-files_xlsx <- files[19:20]
-
-readR <- function(file) {
-  read_xls(file)
+ReadR <- function(file) {
+  if (str_detect(file, "xlsx")) {
+    read_xlsx(file)
+  }
+  else {
+    read_xls(file)
+  }
 }
 
-readR_2 <- function(file) {
-  read_xlsx(file)
-}
-
-case_raw <- cbind(as.data.frame(map(files_xls, readR)), as.data.frame(map(files_xlsx, readR_2))) %>% 
+case_raw <- as.data.frame(map(files, ReadR)) %>% 
   select(-starts_with("State.")) %>% 
   gather(key = "category", value = "value", -State) %>% 
   mutate(category = str_replace(category, "X", "")) %>% 
   mutate(value = floor(value)) %>% 
   separate(category, c("year", "category"), "_") %>% 
-  filter(State == "us_total")
+  filter(State != "us_total") %>% 
+  group_by(year) %>% 
+  mutate(ann_value = sum(year)) %>% 
+  ungroup()
+
+files_work <- list.files("Workers/")
+files_work <- str_c("Workers/", files_work)
+
+workers_raw <- as.data.frame(map(files_work, ReadR)) %>% 
+  select(-starts_with("state."))
 
 case_raw %>% 
   filter(category == "families" | category == "0.families") %>% 
-  ggplot(aes(year, value, group = category, color = category)) +
+  ggplot(aes(year, ann_value, group = category, color = category)) +
   geom_line() +
   labs(title = "Figure 1: Families Receiving TANF Assistance in an Average Month",
        subtitle = "1998 - 2017",
@@ -322,7 +328,7 @@ time_effects %>%
         plot.caption=element_text(size=7, hjust = 0))
 ggsave("Figures and Tables/Figure7.pdf", height = 5, width = 6.5, units = "in")  
 
-# Table 2 ####
+# Table A.2 ####
 p_regress <- function(data) {
   plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability + caseload + 
         liberalism + wpr + unemployment + pcpi_regional,
@@ -336,7 +342,7 @@ fixed_props_avg <- p_regress(props_avg_pdata)
 
 stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
           column.labels = c("Raw Percentages", "Moving Averages of Percentages", "Percentages of Moving Averages"),
-          title = "Table 2: Comparing Regression Output Across Three Data Cleaning Methods", 
+          title = "Table A.2: Comparing Regression Output Across Three Data Cleaning Methods", 
           covariate.labels = c(NA, NA, "fiscal stability", NA, NA, NA, NA, "pcpi regional"),
           omit = "year",
           omit.labels = c("Time Fixed Effects"),
@@ -348,4 +354,44 @@ stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
           column.sep.width = "1pt",
           font.size = "small",
           type = "latex",
-          out = "Figures and Tables/Table2.html")
+          out = "Figures and Tables/TableA.2.html")
+
+# Table A.3 ####
+ann_means <- ann_means %>% 
+  spread(key = "category", value = "value")
+
+write_csv(ann_means, "Figures and Tables/TableA.3.csv")
+
+# Table A.4 ####
+ann_medians <- avg_props %>% 
+  gather("category", "value", -STATE, -year) %>% 
+  group_by(year, category) %>% 
+  summarise(value = median(value, na.rm = TRUE))
+
+ann_medians <- ann_medians %>% 
+  spread(key = "category", value = "value")
+
+write_csv(ann_medians, "Figures and Tables/TableA.4.csv")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
