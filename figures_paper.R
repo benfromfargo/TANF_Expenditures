@@ -28,7 +28,7 @@ case_raw <- as.data.frame(map(files, ReadR)) %>%
   separate(category, c("year", "category"), "_") %>% 
   filter(State != "us_total") %>% 
   group_by(year) %>% 
-  mutate(ann_value = sum(year)) %>% 
+  mutate(ann_value = sum(value)) %>% 
   ungroup()
 
 files_work <- list.files("Workers/")
@@ -97,7 +97,7 @@ raw_data %>%
   labs(title = "Figure 2: Aggregate Reported TANF Spending on Basic Assistance", 
        subtitle = "FY 1998 - 2014",
        caption = "In billions of 2014 dollars") +
-  scale_x_discrete(breaks = c("2000", "2005", "2010")) + 
+  scale_x_discrete(breaks = c("1998", "2003", "2008", "2014")) + 
   scale_y_continuous(breaks = seq(10000000000, 20000000000, by = 2000000000), 
                      labels = c("$10", "$12", "$14", "$16", "$18", "$20")) +
   theme(axis.title.x = element_blank(), 
@@ -124,25 +124,36 @@ ann_means_vis <- gather(ann_means_vis, key = "category", value = "value", -year)
 ann_means_vis <- ann_means_vis %>% 
   mutate(category = factor(category, levels = c("other", "service", "ba")))
 
-ggplot(ann_means_vis, aes(year, value, fill = category)) +
-  geom_col() +
-  scale_x_discrete(breaks = c("2000", "2005", "2010")) +
+ggplot(ann_means_vis, aes(year, value, color = category, group = category)) +
+  geom_line() +
+  scale_x_discrete(breaks = c("1998", "2003", "2008", "2013")) +
   scale_y_continuous(labels = scales::percent,
-                     expand = c(0,.02)) +
-  scale_fill_manual(values = c("#cccccc", "#666666", "#000000"),
-                    labels = c("Other", 
-                               "Work-related, in-kind,\nand short-term benefits", 
-                               "Basic assistance"),
-                    name = "Type of Spending") +
-  theme(panel.grid.major = element_blank(), axis.title.x = element_blank(), 
-        panel.grid.minor = element_blank(), axis.title.y = element_blank(),
-        panel.background = element_blank(), legend.title = element_text(size = 9),
-        legend.text = element_text(size = 8), plot.caption = element_text(size = 7, hjust = 0),
+                     expand = c(0,.02),
+                     limits = c(0, .65)) +
+  scale_color_manual(values = c("#000000", "#000000", "#000000"),
+                     guide = FALSE) +
+  theme(plot.caption = element_text(size = 7, hjust = 0),
         text = element_text(family = "Times New Roman")) +
   labs(title = "Figure 3: Mean Proportional TANF Spending by Type",
        subtitle = "FY 1998 - 2013",
-        caption = "Note: See Table A.1 in the appendix for category groups. Percentages may not add up to 100% in a given fiscal year due to the removal of outlier values. 
-See appendix for more information.")
+       x = NULL,
+       y = NULL,
+        caption = "Note: See Table A.1 in the appendix for category groups. Percentages may not add up to 100% in a given fiscal year due to the removal of outlier values.\nSee appendix for more information.") +
+  annotate("text", "2008", .23, 
+           label = "Basic assistance", 
+           hjust = 0,
+           size = 3,
+           family = "Times New Roman") +
+  annotate("text", "2008", .33, 
+           label = "Other", 
+           hjust = 0,
+           size = 3,
+           family = "Times New Roman") +
+  annotate("text", "2008", .465, 
+           label = "Work-related, in-kind,\nand short-term benefits", 
+           hjust = 0,
+           size = 3,
+           family = "Times New Roman")
 ggsave("Figures and Tables/Figure3.pdf", height = 5, width = 6.5, units = "in")  
 
 # Figure 4 ####
@@ -159,7 +170,7 @@ x <- ann_means %>%
   geom_line() +
   scale_y_continuous(labels = scales::percent,
                      name = element_blank()) +
-  scale_x_discrete(breaks = c("2000", "2005", "2010")) +
+  scale_x_discrete(breaks = c("1998", "2003", "2008", "2013")) +
   geom_text(aes(label = label),
             na.rm = TRUE,
             hjust = 0, 
@@ -200,7 +211,7 @@ avg_props_id %>%
   ggplot() +
   geom_boxplot(aes(year, ba, group = year)) +
   scale_x_discrete(name = element_blank(), 
-                   breaks = c("2000", "2005", "2010")) +
+                   breaks = c("1998", "2003", "2008", "2013")) +
   theme(axis.title = element_blank(), 
         legend.position = "none",
         text = element_text(family = "Times New Roman")) +
@@ -263,36 +274,32 @@ avg_props_id %>%
 ggsave("Figures and Tables/Figure6.pdf", height = 5, width = 6.5, units = "in")  
 
 # Table 1 ####
-# Model 1 : Without caseload, pcpi_regional, and unemployment - no time effects
-p1 <- plm(ba ~ african_americans + hispanics + fiscal_stability + liberalism + wpr,
-          data = avg_props_pdata,
-          model = "within", 
-          effect = "individual")
 
-# Model 2 : Without pcpi_regional and unemployment - no time effects
-p2 <- plm(ba ~ african_americans + hispanics + fiscal_stability + caseload + liberalism + wpr,
-          data = avg_props_pdata,
-          model = "within", 
-          effect = "individual")
-
-# Model 3 : All variables - no time effects 
-p3 <- plm(ba ~ african_americans + hispanics + fiscal_stability + caseload + liberalism + wpr + 
+# Model 1 : All variables - no time effects 
+p1 <- plm(ba ~ african_americans + hispanics + fiscal_stability + caseload + liberalism + wpr + 
             unemployment + pcpi_regional,
           data = avg_props_pdata, 
           model = "within", 
           effect = "individual")
 
-# Model 4 : All variables - time effects 
-p4 <- plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability + caseload + liberalism + wpr + 
+# Model 2 : All variables - time effects 
+p2 <- plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability + caseload + liberalism + wpr + 
             unemployment + pcpi_regional,
           data = avg_props_pdata, 
           model = "within", 
           effect = "individual")
 
-stargazer(p1, p2, p3, p4,
+stargazer(p1, p2,
           title = "Table 1: Regression Output",
-          column.labels = c("Model 1", "Model 2", "Model 3", "Model 4"),
-          covariate.labels = c("african americans", NA, "fiscal stability", NA, NA, NA, NA, "pcpi regional"),
+          column.labels = c("Model 1", "Model 2"),
+          covariate.labels = c("Percent of caseload that is Black", 
+                               "Percent of caseload that is Hispanic", 
+                               "Fiscal balance as a percent of spending",
+                               "Percent change in caseload",
+                               "Government liberalism",
+                               "Work participation rate", 
+                               "Unemployment rate", 
+                               "Per capita income (in thousands)"),
           dep.var.labels = "Basic Assistance Expenditures as a Percentage of Total TANF Expenditures",
           omit = "year",
           header = FALSE,
@@ -304,29 +311,6 @@ stargazer(p1, p2, p3, p4,
           font.size = "small",
           type = "latex",
           out = "Figures and Tables/Table1.html")
-
-# Figure 7 ####
-time_effects <- data.frame(summary(p4)["coefficients"])
-time_effects <- rownames_to_column(time_effects, "year") 
-
-time_effects <- time_effects %>% 
-  filter((str_detect(time_effects$year, "factor"))) %>% 
-  mutate(year = 1999:2013)
-
-time_effects %>% 
-  ggplot() +
-  geom_point(aes(x = year, y = coefficients.Estimate)) +
-  geom_errorbar(aes(x = year,
-                    ymin = coefficients.Estimate - 1.96*coefficients.Std..Error,
-                    ymax = coefficients.Estimate + 1.96*coefficients.Std..Error)) +
-  labs(title = "Figure 7: Coefficients of Time Fixed Effects from Model 4",
-       subtitle = "FY 1999 - 2013",
-       caption = "Note: Error bars represent 95% confidence intervals.") +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        text = element_text(family = "Times New Roman"),
-        plot.caption=element_text(size=7, hjust = 0))
-ggsave("Figures and Tables/Figure7.pdf", height = 5, width = 6.5, units = "in")  
 
 # Table A.2 ####
 p_regress <- function(data) {
@@ -343,7 +327,14 @@ fixed_props_avg <- p_regress(props_avg_pdata)
 stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
           column.labels = c("Raw Percentages", "Moving Averages of Percentages", "Percentages of Moving Averages"),
           title = "Table A.2: Comparing Regression Output Across Three Data Cleaning Methods", 
-          covariate.labels = c(NA, NA, "fiscal stability", NA, NA, NA, NA, "pcpi regional"),
+          covariate.labels = c("Percent of caseload that is Black", 
+                               "Percent of caseload that is Hispanic", 
+                               "Fiscal balance as a percent of spending",
+                               "Percent change in caseload",
+                               "Government liberalism",
+                               "Work participation rate", 
+                               "Unemployment rate", 
+                               "Per capita income (in thousands)"),
           omit = "year",
           omit.labels = c("Time Fixed Effects"),
           notes.align = "l",

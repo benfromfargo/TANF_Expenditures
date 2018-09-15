@@ -26,23 +26,35 @@ ann_means_vis <- gather(ann_means_vis, key = "category", value = "value", -year)
 ann_means_vis <- ann_means_vis %>% 
   mutate(category = factor(category, levels = c("other", "service", "ba")))
 
-ggplot(ann_means_vis, aes(year, value, fill = category)) +
-  geom_col() +
-  scale_x_discrete(breaks = c("2000", "2005", "2010")) +
+ggplot(ann_means_vis, aes(year, value, color = category, group = category)) +
+  geom_line() +
+  scale_x_discrete(breaks = c("1998", "2003", "2008", "2013")) +
   scale_y_continuous(labels = scales::percent,
-                     expand = c(0,.02)) +
-  scale_fill_manual(values = c("#cccccc", "#666666", "#000000"),
-                    labels = c("Other", 
-                               "Work-related, in-kind,\nand short-term benefits", 
-                               "Basic assistance"),
-                    name = "Type of Spending") +
-  theme(panel.grid.major = element_blank(), axis.title.x = element_blank(), 
-        panel.grid.minor = element_blank(), axis.title.y = element_blank(),
-        panel.background = element_blank(), legend.title = element_text(size = 9),
-        legend.text = element_text(size = 8), plot.caption = element_text(size = 7, hjust = 0),
+                     expand = c(0,.02),
+                     limits = c(0, .65)) +
+  scale_color_manual(values = c("#000000", "#000000", "#000000"),
+                     guide = FALSE) +
+  theme(plot.caption = element_text(size = 7, hjust = 0),
         text = element_text(family = "Times New Roman")) +
   labs(caption = "Note: See Table 3 in the appendix for category groups. Percentages may not add up to 100% in a given fiscal year due to the removal of outlier values. 
-See appendix for more information.") 
+See appendix for more information.",
+       x = NULL,
+       y = NULL) +
+  annotate("text", "2008", .23, 
+           label = "Basic assistance", 
+           hjust = 0,
+           size = 3,
+           family = "Times New Roman") +
+  annotate("text", "2008", .33, 
+           label = "Other", 
+           hjust = 0,
+           size = 3,
+           family = "Times New Roman") +
+  annotate("text", "2008", .465, 
+           label = "Work-related, in-kind,\nand short-term benefits", 
+           hjust = 0,
+           size = 3,
+           family = "Times New Roman")
 
 # Figure 2 ####
 ## @knitr Figure.2
@@ -59,7 +71,7 @@ x <- ann_means %>%
   geom_line() +
   scale_y_continuous(labels = scales::percent,
                      name = element_blank()) +
-  scale_x_discrete(breaks = c("2000", "2005", "2010")) +
+  scale_x_discrete(breaks = c("1998", "2003", "2008", "2013")) +
   geom_text(aes(label = label),
             na.rm = TRUE,
             hjust = 0, 
@@ -98,7 +110,7 @@ suppressWarnings(avg_props_id %>%
                    ggplot() +
                    geom_boxplot(aes(year, ba, group = year)) +
                    scale_x_discrete(name = element_blank(), 
-                                    breaks = c("2000", "2005", "2010")) +
+                                    breaks = c("1998", "2003", "2008", "2013")) +
                    theme(axis.title = element_blank(), 
                          legend.position = "none",
                          text = element_text(family = "Times New Roman")) +
@@ -215,6 +227,7 @@ time_effects %>%
   geom_errorbar(aes(x = year,
                     ymin = coefficients.Estimate - 1.96*coefficients.Std..Error,
                     ymax = coefficients.Estimate + 1.96*coefficients.Std..Error)) +
+  scale_x_discrete(breaks = c("1998", "2003", "2008", "2013")) +
   labs(caption = "Note: Error bars represent 95% confidence intervals.") +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
