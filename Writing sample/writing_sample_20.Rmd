@@ -46,6 +46,13 @@ source("TANF_clean.R")
 read_chunk("figures.R")
 
 knitr::opts_chunk$set(warning=FALSE, message=FALSE, echo = FALSE, dev = "cairo_pdf")
+
+my_theme <- theme_classic() +
+  theme(text = element_text(family = "Times New Roman"),
+        panel.grid.major.y = element_line(colour = "#dedddd"),
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank())
+theme_set(my_theme)
 ```
 The 1996 Personal Responsibility and Work Opportunity Reconciliation Act (PRWORA) delegated broad authority to the U.S. states over cash assistance programs for low-income families. At the legislation’s core was Temporary Assistance for Needy Families (TANF), a block grant program that provides funding to states to combat welfare dependency, support families and children, and prevent out-of-wedlock pregnancies. The creation of TANF and broad delegation of social welfare policymaking authority under the PRWORA prompt two over-arching questions. First, how have states spent TANF funds since the creation of the program? Did states use devolution to reshape welfare spending? And if changes did occur, were there broad trends among states or have states followed distinctive trajectories? Second, why do states spend TANF funds in particular ways? What factors—political, economic, or demographic—account for any observed variation in states’ TANF expenditure decisions? 
 

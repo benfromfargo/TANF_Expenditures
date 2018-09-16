@@ -7,9 +7,19 @@ library(stargazer)
 library(extrafont)
 library(plm)
 
+my_theme <- theme_classic() +
+  theme(text = element_text(family = "Times New Roman"),
+        panel.grid.major.y = element_line(colour = "#dedddd"),
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank())
+theme_set(my_theme)
+
 # Figure 1 ####
 files <- list.files("Caseloads/")
 files <- str_c("Caseloads/", files)
+
+files_work <- list.files("Workers/")
+files_work <- str_c("Workers/", files_work)
 
 ReadR <- function(file) {
   if (str_detect(file, "xlsx")) {
@@ -29,31 +39,42 @@ case_raw <- as.data.frame(map(files, ReadR)) %>%
   filter(State != "us_total") %>% 
   group_by(year) %>% 
   mutate(ann_value = sum(value)) %>% 
-  ungroup()
-
-files_work <- list.files("Workers/")
-files_work <- str_c("Workers/", files_work)
+  ungroup() %>% 
+  filter(category == "families") %>% 
+  rename(state = State)
 
 workers_raw <- as.data.frame(map(files_work, ReadR)) %>% 
-  select(-starts_with("state."))
+  select(-starts_with("state.")) %>% 
+  gather("category", "value", -state) %>% 
+  separate(category, c("category", "year"), "_") %>%
+  group_by(year) %>% 
+  mutate(ann_value = sum(value)) %>% 
+  ungroup()
+
+case_raw <- rbind(case_raw, workers_raw)
 
 case_raw %>% 
-  filter(category == "families" | category == "0.families") %>% 
-  ggplot(aes(year, ann_value, group = category, color = category)) +
+  ggplot(aes(year, ann_value, color = category, group = category)) +
   geom_line() +
   labs(title = "Figure 1: Families Receiving TANF Assistance in an Average Month",
        subtitle = "1998 - 2017",
-       caption = "In millions of families") +
-  scale_colour_manual(labels = c("Child-only families", "All families"), 
-                      name = element_blank(), 
-                      guide = guide_legend(reverse = TRUE), 
-                      values = c("#666666", "#000000")) +  
-  scale_x_discrete(breaks = c("2000", "2005", "2010", "2015")) + 
-  theme(axis.title.x = element_blank(), 
-        axis.title.y = element_blank(),
-        text = element_text(family = "Times New Roman")) +
-  scale_y_continuous(breaks = c(1000000, 1500000, 2000000, 2500000, 3000000),
-                     labels = c("1", "1.5", "2", "2.5", "3"))
+       caption = "In millions of families", 
+       x = NULL, 
+       y = NULL) +
+  scale_colour_manual(guide = FALSE, 
+                      values = c("#000000", "#000000")) +  
+  scale_x_discrete(breaks = c("1998", "2003", "2008", "2013", "2017")) + 
+  scale_y_continuous(breaks = seq(1000000, 6000000, 1000000),
+                     labels = c("1", "2", "3", "4", "5", "6")) +
+  annotate("text", x = "2010", y = 4100000, 
+           label = "All families", size = 3, 
+           family = "Times New Roman",
+           hjust = 0) +
+  annotate("text", x = "2010", y = 1400000, 
+           label = "Families with a work-eligible individual",
+           size = 3, 
+           family = "Times New Roman",
+           hjust = 0)
 ggsave("Figures and Tables/Figure1.pdf", height = 5, width = 6.5, units = "in")  
 
 # Figure 2 ####
@@ -304,6 +325,9 @@ stargazer(p1, p2,
           omit = "year",
           header = FALSE,
           omit.labels = c("Time Fixed Effects"),
+          star.cutoffs = c(.05),
+          notes = "*p < 0.05",
+          notes.append = FALSE,
           notes.align = "r",
           model.numbers = FALSE,
           initial.zero = FALSE,
@@ -338,6 +362,9 @@ stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
           omit = "year",
           omit.labels = c("Time Fixed Effects"),
           notes.align = "l",
+          star.cutoffs = c(.05),
+          notes = "*p < 0.05",
+          notes.append = FALSE,
           initial.zero = FALSE,
           model.numbers = FALSE,
           header = FALSE,
