@@ -1,3 +1,4 @@
+# Init ####
 source("TANF_clean.R")
 
 library(ggrepel)
@@ -6,6 +7,7 @@ library(grid)
 library(stargazer)
 library(extrafont)
 library(plm)
+library(gridExtra)
 
 # Figure 1 ####
 ## @knitr Figure.1
@@ -29,13 +31,13 @@ ann_means_vis <- ann_means_vis %>%
 ggplot(ann_means_vis, aes(year, value, color = category, group = category)) +
   geom_line() +
   scale_x_discrete(breaks = c("1998", "2003", "2008", "2013")) +
-  scale_y_continuous(labels = scales::percent,
-                     expand = c(0,.02),
-                     limits = c(0, .65)) +
+  scale_y_continuous(labels = scales::percent_format(1),
+                     expand = c(0, 0),
+                     limits = c(0, .6),
+                     breaks = c(0, .2, .4, .6)) +
   scale_color_manual(values = c("#000000", "#000000", "#000000"),
                      guide = FALSE) +
-  theme(plot.caption = element_text(size = 7, hjust = 0),
-        text = element_text(family = "Times New Roman")) +
+  theme(plot.caption = element_text(size = 7, hjust = 0)) +
   labs(caption = "Note: See Table 3 in the appendix for category groups. Percentages may not add up to 100% in a given fiscal year due to the removal of outlier values. 
 See appendix for more information.",
        x = NULL,
@@ -69,8 +71,11 @@ x <- ann_means %>%
     label == "shortben" ~ "     Diversion benefits")) %>% 
   ggplot(aes(year, value, group = category)) +
   geom_line() +
-  scale_y_continuous(labels = scales::percent,
-                     name = element_blank()) +
+  scale_y_continuous(labels = scales::percent_format(1),
+                     name = element_blank(),
+                     expand = c(0,0),
+                     breaks = c(0, .05, .1, .15, .2),
+                     limits = c(0, .2)) +
   scale_x_discrete(breaks = c("1998", "2003", "2008", "2013")) +
   geom_text(aes(label = label),
             na.rm = TRUE,
@@ -79,8 +84,7 @@ x <- ann_means %>%
             size = 3) +
   theme(plot.margin = unit(c(1,12,1,1), "lines"),
         axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        text = element_text(family = "Times New Roman")) 
+        axis.title.y = element_blank()) 
 
 gt <- ggplotGrob(x)
 gt$layout$clip[gt$layout$name == "panel"] <- "off"
@@ -112,19 +116,22 @@ suppressWarnings(avg_props_id %>%
                    scale_x_discrete(name = element_blank(), 
                                     breaks = c("1998", "2003", "2008", "2013")) +
                    theme(axis.title = element_blank(), 
-                         legend.position = "none",
-                         text = element_text(family = "Times New Roman")) +
+                         legend.position = "none") +
                    geom_point(aes(year, outlier2)) +
                    geom_text_repel(aes(year, outlier2, 
                                        label = outlier), 
                                    size = 2, 
-                                   nudge_x = .15) +
-                   scale_y_continuous(labels = scales::percent))
+                                   nudge_x = .05,
+                                   segment.color = NA) +
+                   scale_y_continuous(labels = scales::percent_format(1),
+                                      expand = c(0,0),
+                                      breaks = seq(0, 1, .25),
+                                      limits = c(0,1))
 
 # Figure 4 ####
 ## @knitr Figure.4
 top_ten_98 <- avg_props_id %>% 
-  filter(year == 1998) %>%
+  filter(ba, year == 1998) %>%
   filter(!is.na(ba)) %>%
   top_n(10, ba)
 
@@ -133,40 +140,65 @@ bottom_ten_98 <- avg_props_id %>%
   filter(!is.na(ba)) %>% 
   top_n(-10, ba)
 
-top_ten_13 <- avg_props_id %>% 
-  filter(year == 2013) %>%
-  filter(!is.na(ba)) %>%
-  top_n(10, ba)
+## PLOT 1
 
-bottom_ten_13 <- avg_props_id %>% 
-  filter(year == 2013) %>%
-  filter(!is.na(ba)) %>%
-  top_n(-10, ba)
-
-avg_props_id %>% 
+plot_one <- avg_props_id %>% 
   filter(year == 1998 | year == 2013) %>%
   filter(!is.na(ba)) %>% 
   mutate(year = as.factor(year)) %>%
-  mutate(rank = as.factor(ifelse(state_id %in% top_ten_98$state_id, 1, 
-                                 ifelse(state_id %in% bottom_ten_98$state_id, 2, 0)))) %>%
+  mutate(rank = as.factor(ifelse(state_id %in% top_ten_98$state_id, 1, 0))) %>%  
   ggplot(aes(year, ba, group = state_id, color = rank, alpha = rank)) +
   geom_line() +
   geom_point() +
-  scale_y_continuous(labels = scales::percent, 
-                     name = element_blank()) +
-  scale_x_discrete(name = element_blank(),
-                   expand = c(.2,.2)) +
-  scale_color_manual(values = c("#cccccc", "#666666", "#000000"), 
-                     name = element_blank(), 
-                     breaks = c(1, 2),
-                     labels = c("Ten states with the greatest\nshare of TANF funds spent on\nbasic assistance in FY 1998",
-                                "Ten states with the smallest\nshare of TANF funds spent on\nbasic assistance in FY 1998")) +
-  scale_alpha_manual(values = c(.4, .8, .8),
-                     guide = "none") +
-  labs(caption = "Note: South Carolina and Tennessee removed due to negative reported basic assistance expenditures in FY 1998. See appendix for more information.") +
-  theme(plot.caption=element_text(size=7, hjust = 0), legend.text = element_text(size = 8),
-        text = element_text(family = "Times New Roman"), legend.key = element_rect(size = 7),
-        legend.key.size = unit(2, 'lines'))
+  scale_y_continuous(labels = scales::percent_format(1)) + 
+  theme(text = element_text(family = "Times New Roman")) +
+  scale_x_discrete(expand = expand_scale(mult = c(.05,.2))) +
+  scale_color_manual(values = c("#cccccc", "#000000"), 
+                     guide = FALSE) +
+  scale_alpha_manual(values = c(.4, .8),
+                     guide = FALSE) +
+  geom_text_repel(aes(year, ba, 
+                      label = ifelse(year == "2013" & state_id %in% top_ten_98$state_id,
+                                     state_id, NA)),
+                  family = "Times New Roman",
+                  size = 2,
+                  segment.colour = NA,
+                  nudge_x = .04) +
+  labs(x = NULL, 
+       y = NULL)
+
+## PLOT 2
+
+plot_two <- avg_props_id %>% 
+  filter(year == 1998 | year == 2013) %>%
+  filter(!is.na(ba)) %>% 
+  mutate(year = as.factor(year)) %>%
+  mutate(rank = as.factor(ifelse(state_id %in% bottom_ten_98$state_id, 1, 0))) %>%  
+  ggplot(aes(year, ba, group = state_id, color = rank, alpha = rank)) +
+  geom_line() +
+  geom_point() +
+  scale_y_continuous(labels = scales::percent_format(1)) + 
+  scale_x_discrete(expand = expand_scale(mult = c(.05,.2))) +
+  theme(text = element_text(family = "Times New Roman")) +
+  scale_color_manual(values = c("#cccccc", "#000000"), 
+                     guide = FALSE) +
+  scale_alpha_manual(values = c(.4, .8),
+                     guide = FALSE) +
+  geom_text_repel(aes(year, ba, 
+                      label = ifelse(year == "2013" & state_id %in% bottom_ten_98$state_id,
+                                     state_id, NA)),
+                  family = "Times New Roman",
+                  size = 2,
+                  segment.colour = NA,
+                  nudge_x = .04) +
+  labs(x = NULL, 
+       y = NULL)
+
+gt <- arrangeGrob(plot_one, plot_two, ncol = 2,
+                  bottom = textGrob("Note: South Carolina and Tennessee removed due to negative reported basic assistance expenditures in FY 1998. See appendix for more information.",
+                                    gp = gpar(fontsize = 7,
+                                              fontfamily = "Times New Roman"),
+                                    hjust = .45))
 
 # Table 1 ####
 ## @knitr Table.1
@@ -228,11 +260,12 @@ time_effects %>%
                     ymin = coefficients.Estimate - 1.96*coefficients.Std..Error,
                     ymax = coefficients.Estimate + 1.96*coefficients.Std..Error)) +
   scale_x_discrete(breaks = c("1998", "2003", "2008", "2013")) +
-  labs(caption = "Note: Error bars represent 95% confidence intervals.") +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        text = element_text(family = "Times New Roman"),
-        plot.caption=element_text(size=7, hjust = 0))
+  scale_y_continuous(limits = c(-40, 0),
+                     breaks = c(0, -10, -20, -30, -40)) +
+  labs(caption = "Note: Error bars represent 95% confidence intervals.",
+       x = NULL, 
+       y = NULL) +
+  theme(plot.caption = element_text(size=7, hjust = 0))
 
 # Table 2 ####
 ## @knitr Table A.1

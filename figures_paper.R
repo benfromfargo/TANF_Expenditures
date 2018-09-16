@@ -1,3 +1,4 @@
+# Init ####
 source("TANF_clean.R")
 
 library(ggrepel)
@@ -6,12 +7,14 @@ library(grid)
 library(stargazer)
 library(extrafont)
 library(plm)
+library(gridExtra)
 
 my_theme <- theme_classic() +
   theme(text = element_text(family = "Times New Roman"),
         panel.grid.major.y = element_line(colour = "#dedddd"),
         axis.line.y = element_blank(),
-        axis.ticks.y = element_blank())
+        axis.ticks.y = element_blank(),
+        plot.title = element_text(face = "bold"))
 theme_set(my_theme)
 
 # Figure 1 ####
@@ -61,16 +64,18 @@ case_raw %>%
        caption = "In millions of families", 
        x = NULL, 
        y = NULL) +
-  scale_colour_manual(guide = FALSE, 
+  scale_color_manual(guide = FALSE, 
                       values = c("#000000", "#000000")) +  
   scale_x_discrete(breaks = c("1998", "2003", "2008", "2013", "2017")) + 
-  scale_y_continuous(breaks = seq(1000000, 6000000, 1000000),
-                     labels = c("1", "2", "3", "4", "5", "6")) +
+  scale_y_continuous(breaks = seq(0, 6000000, 1000000),
+                     labels = c("0", "1", "2", "3", "4", "5", "6"),
+                     limits = c(0,6100000),
+                     expand = c(0,0)) +
   annotate("text", x = "2010", y = 4100000, 
            label = "All families", size = 3, 
            family = "Times New Roman",
            hjust = 0) +
-  annotate("text", x = "2010", y = 1400000, 
+  annotate("text", x = "2010", y = 1300000, 
            label = "Families with a work-eligible individual",
            size = 3, 
            family = "Times New Roman",
@@ -117,17 +122,17 @@ raw_data %>%
   geom_line() +
   labs(title = "Figure 2: Aggregate Reported TANF Spending on Basic Assistance", 
        subtitle = "FY 1998 - 2014",
-       caption = "In billions of 2014 dollars") +
+       caption = "In billions of 2014 dollars",
+       x = NULL,
+       y = NULL) +
   scale_x_discrete(breaks = c("1998", "2003", "2008", "2014")) + 
-  scale_y_continuous(breaks = seq(10000000000, 20000000000, by = 2000000000), 
-                     labels = c("$10", "$12", "$14", "$16", "$18", "$20")) +
-  theme(axis.title.x = element_blank(), 
-        axis.title.y = element_blank(),
-        text = element_text(family = "Times New Roman"))
+  scale_y_continuous(breaks = seq(0, 20000000000, by = 5000000000),
+                     labels = c("$0", "$5", "$10", "$15", "$20"),
+                     limits = c(0, 20000000000),
+                     expand = c(0,0))
 ggsave("Figures and Tables/Figure2.pdf", height = 5, width = 6.5, units = "in")  
 
 # Figure 3 ####
-
 ann_means <- avg_props %>% 
   gather("category", "value", -STATE, -year) %>% 
   group_by(year, category) %>% 
@@ -148,13 +153,13 @@ ann_means_vis <- ann_means_vis %>%
 ggplot(ann_means_vis, aes(year, value, color = category, group = category)) +
   geom_line() +
   scale_x_discrete(breaks = c("1998", "2003", "2008", "2013")) +
-  scale_y_continuous(labels = scales::percent,
-                     expand = c(0,.02),
-                     limits = c(0, .65)) +
+  scale_y_continuous(labels = scales::percent_format(1),
+                     expand = c(0, 0),
+                     limits = c(0, .6),
+                     breaks = c(0, .2, .4, .6)) +
   scale_color_manual(values = c("#000000", "#000000", "#000000"),
                      guide = FALSE) +
-  theme(plot.caption = element_text(size = 7, hjust = 0),
-        text = element_text(family = "Times New Roman")) +
+  theme(plot.caption = element_text(size = 7, hjust = 0)) +
   labs(title = "Figure 3: Mean Proportional TANF Spending by Type",
        subtitle = "FY 1998 - 2013",
        x = NULL,
@@ -189,20 +194,22 @@ x <- ann_means %>%
     label == "shortben" ~ "     Diversion benefits")) %>% 
   ggplot(aes(year, value, group = category)) +
   geom_line() +
-  scale_y_continuous(labels = scales::percent,
-                     name = element_blank()) +
+  scale_y_continuous(labels = scales::percent_format(1),
+                     name = element_blank(),
+                     expand = c(0,0),
+                     breaks = c(0, .05, .1, .15, .2),
+                     limits = c(0, .2)) +
   scale_x_discrete(breaks = c("1998", "2003", "2008", "2013")) +
   geom_text(aes(label = label),
             na.rm = TRUE,
             hjust = 0, 
             family = "Times New Roman",
             size = 3) +
-  theme(plot.margin = unit(c(1,12,1,1), "lines"),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        text = element_text(family = "Times New Roman")) + 
+  theme(plot.margin = unit(c(1,12,1,1), "lines")) + 
   labs(title = "Figure 4: Mean Expenditures on Work-Related, In-Kind, and Short-Term Benefits",
-       subtitle = "FY 1998 - 2013")
+       subtitle = "FY 1998 - 2013",
+       x = NULL,
+       y = NULL)
 
 gt <- ggplotGrob(x)
 gt$layout$clip[gt$layout$name == "panel"] <- "off"
@@ -233,22 +240,26 @@ avg_props_id %>%
   geom_boxplot(aes(year, ba, group = year)) +
   scale_x_discrete(name = element_blank(), 
                    breaks = c("1998", "2003", "2008", "2013")) +
-  theme(axis.title = element_blank(), 
-        legend.position = "none",
-        text = element_text(family = "Times New Roman")) +
+  theme(legend.position = "none") +
   geom_point(aes(year, outlier2)) +
   geom_text_repel(aes(year, outlier2, 
                       label = outlier), 
                   size = 2, 
-                  nudge_x = .15) +
+                  nudge_x = .05,
+                  segment.color = NA) +
   labs(title = "Figure 5: Boxplots of Proportional Basic Assistance Expenditures",
-       subtitle = "FY 1998 - 2013") +
-  scale_y_continuous(labels = scales::percent)
+       subtitle = "FY 1998 - 2013",
+       x = NULL,
+       y = NULL) +
+  scale_y_continuous(labels = scales::percent_format(1),
+                     expand = c(0,0),
+                     breaks = seq(0, 1, .25),
+                     limits = c(0,1))
 ggsave("Figures and Tables/Figure5.pdf", height = 5, width = 6.5, units = "in")  
 
 # Figure 6 ####
 top_ten_98 <- avg_props_id %>% 
-  filter(year == 1998) %>%
+  filter(ba, year == 1998) %>%
   filter(!is.na(ba)) %>%
   top_n(10, ba)
 
@@ -257,42 +268,68 @@ bottom_ten_98 <- avg_props_id %>%
   filter(!is.na(ba)) %>% 
   top_n(-10, ba)
 
-top_ten_13 <- avg_props_id %>% 
-  filter(year == 2013) %>%
-  filter(!is.na(ba)) %>%
-  top_n(10, ba)
-
-bottom_ten_13 <- avg_props_id %>% 
-  filter(year == 2013) %>%
-  filter(!is.na(ba)) %>%
-  top_n(-10, ba)
-
-avg_props_id %>% 
+## PLOT 1
+plot_one <- avg_props_id %>% 
   filter(year == 1998 | year == 2013) %>%
   filter(!is.na(ba)) %>% 
   mutate(year = as.factor(year)) %>%
-  mutate(rank = as.factor(ifelse(state_id %in% top_ten_98$state_id, 1, 
-                                 ifelse(state_id %in% bottom_ten_98$state_id, 2, 0)))) %>%
+  mutate(rank = as.factor(ifelse(state_id %in% top_ten_98$state_id, 1, 0))) %>%  
   ggplot(aes(year, ba, group = state_id, color = rank, alpha = rank)) +
   geom_line() +
   geom_point() +
-  scale_y_continuous(labels = scales::percent, 
-                     name = element_blank()) +
-  scale_x_discrete(name = element_blank(),
-                   expand = c(.2,.2)) +
-  scale_color_manual(values = c("#cccccc", "#666666", "#000000"), 
-                     name = element_blank(), 
-                     breaks = c(1, 2),
-                     labels = c("Ten states with the greatest\nshare of TANF funds spent on\nbasic assistance in FY 1998",
-                                "Ten states with the smallest\nshare of TANF funds spent on\nbasic assistance in FY 1998")) +
-  scale_alpha_manual(values = c(.4, .8, .8),
-                     guide = "none") +
-  labs(title = "Figure 6: Proportional Basic Assistance Spending in FY 1998 and FY 2013",
-        caption = "Note: South Carolina and Tennessee removed due to negative reported basic assistance expenditures in FY 1998. See appendix for more information.") +
-  theme(plot.caption=element_text(size=7, hjust = 0), legend.text = element_text(size = 8),
-        text = element_text(family = "Times New Roman"), legend.key = element_rect(size = 7),
-        legend.key.size = unit(2, 'lines'))
-ggsave("Figures and Tables/Figure6.pdf", height = 5, width = 6.5, units = "in")  
+  scale_y_continuous(labels = scales::percent_format(1)) + 
+  theme(text = element_text(family = "Times New Roman")) +
+  scale_x_discrete(expand = expand_scale(mult = c(.05,.2))) +
+  scale_color_manual(values = c("#cccccc", "#000000"), 
+                     guide = FALSE) +
+  scale_alpha_manual(values = c(.4, .8),
+                     guide = FALSE) +
+  geom_text_repel(aes(year, ba, 
+                      label = ifelse(year == "2013" & state_id %in% top_ten_98$state_id,
+                                     state_id, NA)),
+                  family = "Times New Roman",
+                  size = 2,
+                  segment.colour = NA,
+                  nudge_x = .04) +
+  labs(x = NULL, 
+       y = NULL)
+
+## PLOT 2
+plot_two <- avg_props_id %>% 
+  filter(year == 1998 | year == 2013) %>%
+  filter(!is.na(ba)) %>% 
+  mutate(year = as.factor(year)) %>%
+  mutate(rank = as.factor(ifelse(state_id %in% bottom_ten_98$state_id, 1, 0))) %>%  
+  ggplot(aes(year, ba, group = state_id, color = rank, alpha = rank)) +
+  geom_line() +
+  geom_point() +
+  scale_y_continuous(labels = scales::percent_format(1)) + 
+  scale_x_discrete(expand = expand_scale(mult = c(.05,.2))) +
+  theme(text = element_text(family = "Times New Roman")) +
+  scale_color_manual(values = c("#cccccc", "#000000"), 
+                     guide = FALSE) +
+  scale_alpha_manual(values = c(.4, .8),
+                     guide = FALSE) +
+  geom_text_repel(aes(year, ba, 
+                      label = ifelse(year == "2013" & state_id %in% bottom_ten_98$state_id,
+                                     state_id, NA)),
+                  family = "Times New Roman",
+                  size = 2,
+                  segment.colour = NA,
+                  nudge_x = .04) +
+  labs(x = NULL, 
+       y = NULL)
+
+gt <- arrangeGrob(plot_one, plot_two, ncol = 2,
+                  top = textGrob("Figure 6: Proportional Basic Assistance Spending in FY 1998 and FY 2013",
+                                 gp = gpar(fontsize = 11,
+                                           fontfamily = "Times New Roman"),
+                                 hjust = .62),
+                  bottom = textGrob("Note: South Carolina and Tennessee removed due to negative reported basic assistance expenditures in FY 1998. See appendix for more information.",
+                                    gp = gpar(fontsize = 7,
+                                              fontfamily = "Times New Roman"),
+                                    hjust = .45))
+ggsave("Figures and Tables/Figure6.pdf", gt, height = 5, width = 6.5, units = "in")  
 
 # Table 1 ####
 
