@@ -3,7 +3,6 @@ library(tidyverse)
 library(openxlsx)
 library(readxl)
 library(zoo)
-library(plm)
 
 #Remove scientific notation 
 options(scipen = 999)
@@ -69,13 +68,10 @@ join_data <- function(x, y) {
 # Final data with all variables lagged one year forward 
 props_pdata <- join_data(props, ind_data)
 props_pdata[, 3:12] <- sapply(props_pdata[, 3:12], to_percent)
-props_pdata <- pdata.frame(props_pdata, index = c("STATE", "year"))
 
 avg_props_pdata <- join_data(avg_props, ind_data)
 avg_props_pdata[, 3:12] <- sapply(avg_props_pdata[, 3:12], to_percent)
-avg_props_pdata <- pdata.frame(avg_props_pdata, index = c("STATE", "year"))
 
 props_avg_pdata <- join_data(props_avg, ind_data)
 props_avg_pdata[, 3:12] <- sapply(props_avg_pdata[, 3:12], to_percent)
-props_avg_pdata <- pdata.frame(props_avg_pdata, index = c("STATE", "year"))
 

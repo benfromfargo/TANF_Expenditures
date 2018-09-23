@@ -1,6 +1,7 @@
 # Init ####
 source("TANF_clean.R")
 
+library(lfe)
 library(ggrepel)
 library(gtable)
 library(grid)
@@ -206,7 +207,7 @@ x <- ann_means %>%
             family = "Times New Roman",
             size = 3) +
   theme(plot.margin = unit(c(1,12,1,1), "lines")) + 
-  labs(title = "Figure 4: Mean Expenditures on Work-Related, In-Kind, and Short-Term Benefits",
+  labs(title = "Figure 4: Mean Expenditures on Work-Related, In-Kind, and\nShort-Term Benefits",
        subtitle = "FY 1998 - 2013",
        x = NULL,
        y = NULL)
@@ -214,7 +215,7 @@ x <- ann_means %>%
 gt <- ggplotGrob(x)
 gt$layout$clip[gt$layout$name == "panel"] <- "off"
 grid.draw(gt)
-ggsave("Figures and Tables/Figure4.pdf", gt, height = 5, width = 6.7, units = "in")  
+ggsave("Figures and Tables/Figure4.pdf", gt, height = 5, width = 6.5, units = "in")  
 
 # Figure 5 ####
 avg_props_id <- avg_props %>% 
@@ -277,8 +278,12 @@ plot_one <- avg_props_id %>%
   ggplot(aes(year, ba, group = state_id, color = rank, alpha = rank)) +
   geom_line() +
   geom_point() +
-  scale_y_continuous(labels = scales::percent_format(1)) + 
-  theme(text = element_text(family = "Times New Roman")) +
+  scale_y_continuous(labels = scales::percent_format(1),
+                     expand = c(0,0),
+                     breaks = seq(0, 1, .25),
+                     limits = c(0,1)) + 
+  theme(text = element_text(family = "Times New Roman"),
+        plot.subtitle = element_text(hjust = .5)) +
   scale_x_discrete(expand = expand_scale(mult = c(.05,.2))) +
   scale_color_manual(values = c("#cccccc", "#000000"), 
                      guide = FALSE) +
@@ -289,10 +294,13 @@ plot_one <- avg_props_id %>%
                                      state_id, NA)),
                   family = "Times New Roman",
                   size = 2,
-                  segment.colour = NA,
-                  nudge_x = .04) +
+                  segment.size = .2,
+                  direction = "y",
+                  nudge_x = .1,
+                  hjust = 0) +
   labs(x = NULL, 
-       y = NULL)
+       y = NULL,
+       subtitle = "Ten highest spending states in FY 1998")
 
 ## PLOT 2
 plot_two <- avg_props_id %>% 
@@ -303,9 +311,13 @@ plot_two <- avg_props_id %>%
   ggplot(aes(year, ba, group = state_id, color = rank, alpha = rank)) +
   geom_line() +
   geom_point() +
-  scale_y_continuous(labels = scales::percent_format(1)) + 
+  scale_y_continuous(labels = scales::percent_format(1),
+                     expand = c(0,0),
+                     breaks = seq(0, 1, .25),
+                     limits = c(0,1)) +  
   scale_x_discrete(expand = expand_scale(mult = c(.05,.2))) +
-  theme(text = element_text(family = "Times New Roman")) +
+  theme(text = element_text(family = "Times New Roman"),
+        plot.subtitle = element_text(hjust = .5)) +
   scale_color_manual(values = c("#cccccc", "#000000"), 
                      guide = FALSE) +
   scale_alpha_manual(values = c(.4, .8),
@@ -315,16 +327,20 @@ plot_two <- avg_props_id %>%
                                      state_id, NA)),
                   family = "Times New Roman",
                   size = 2,
-                  segment.colour = NA,
-                  nudge_x = .04) +
+                  segment.size = .2,
+                  direction = "y",
+                  nudge_x = .1,
+                  hjust = 0) +
   labs(x = NULL, 
-       y = NULL)
+       y = NULL,
+       subtitle = "Ten lowest spending states in FY 1998")
 
 gt <- arrangeGrob(plot_one, plot_two, ncol = 2,
                   top = textGrob("Figure 6: Proportional Basic Assistance Spending in FY 1998 and FY 2013",
-                                 gp = gpar(fontsize = 11,
-                                           fontfamily = "Times New Roman"),
-                                 hjust = .62),
+                                 gp = gpar(fontsize = 13,
+                                           fontfamily = "Times New Roman",
+                                           fontface = "bold"),
+                                 hjust = .5),
                   bottom = textGrob("Note: South Carolina and Tennessee removed due to negative reported basic assistance expenditures in FY 1998. See appendix for more information.",
                                     gp = gpar(fontsize = 7,
                                               fontfamily = "Times New Roman"),
@@ -334,15 +350,15 @@ ggsave("Figures and Tables/Figure6.pdf", gt, height = 5, width = 6.5, units = "i
 # Table 1 ####
 
 # Model 1 : All variables - no time effects 
-p1 <- plm(ba ~ african_americans + hispanics + fiscal_stability + caseload + liberalism + wpr + 
-            unemployment + pcpi_regional,
+p1 <- plm(ba ~ african_americans + hispanics + liberalism + unemployment + pcpi_regional + 
+            fiscal_stability + caseload + wpr,
           data = avg_props_pdata, 
           model = "within", 
           effect = "individual")
 
 # Model 2 : All variables - time effects 
-p2 <- plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability + caseload + liberalism + wpr + 
-            unemployment + pcpi_regional,
+p2 <- plm(ba ~ african_americans + hispanics + liberalism + unemployment + pcpi_regional + 
+            fiscal_stability + caseload + wpr + factor(year),
           data = avg_props_pdata, 
           model = "within", 
           effect = "individual")
@@ -350,18 +366,18 @@ p2 <- plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability +
 stargazer(p1, p2,
           title = "Table 1: Regression Output",
           column.labels = c("Model 1", "Model 2"),
-          covariate.labels = c("Percent of caseload that is Black", 
-                               "Percent of caseload that is Hispanic", 
+          covariate.labels = c("Percent of caseload that is African American", 
+                               "Percent of caseload that is Hispanic",
+                               "Government liberalism",
+                               "Unemployment rate", 
+                               "Per capita income (in thousands)",
                                "Fiscal balance as a percent of spending",
                                "Percent change in caseload",
-                               "Government liberalism",
-                               "Work participation rate", 
-                               "Unemployment rate", 
-                               "Per capita income (in thousands)"),
+                               "Work participation rate"),
           dep.var.labels = "Basic Assistance Expenditures as a Percentage of Total TANF Expenditures",
+          add.lines = list(c("Time Fixed Effects", "No", "Yes")),
           omit = "year",
           header = FALSE,
-          omit.labels = c("Time Fixed Effects"),
           star.cutoffs = c(.05),
           notes = "*p < 0.05",
           notes.append = FALSE,
@@ -374,6 +390,23 @@ stargazer(p1, p2,
           out = "Figures and Tables/Table1.html")
 
 # Table A.2 ####
+ann_means <- ann_means %>% 
+  spread(key = "category", value = "value")
+
+write_csv(ann_means, "Figures and Tables/TableA.2.csv")
+
+# Table A.3 ####
+ann_medians <- avg_props %>% 
+  gather("category", "value", -STATE, -year) %>% 
+  group_by(year, category) %>% 
+  summarise(value = median(value, na.rm = TRUE))
+
+ann_medians <- ann_medians %>% 
+  spread(key = "category", value = "value")
+
+write_csv(ann_medians, "Figures and Tables/TableA.3.csv")
+
+# Table A.4 ####
 p_regress <- function(data) {
   plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability + caseload + 
         liberalism + wpr + unemployment + pcpi_regional,
@@ -387,18 +420,19 @@ fixed_props_avg <- p_regress(props_avg_pdata)
 
 stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
           column.labels = c("Raw Percentages", "Moving Averages of Percentages", "Percentages of Moving Averages"),
-          title = "Table A.2: Comparing Regression Output Across Three Data Cleaning Methods", 
-          covariate.labels = c("Percent of caseload that is Black", 
-                               "Percent of caseload that is Hispanic", 
+          title = "Table A.4: Comparing Regression Output Across Three Data Cleaning Methods", 
+          order = c(1, 2, 5, 7, 8, 3, 4, 6),
+          covariate.labels = c("Percent of caseload that is African American", 
+                               "Percent of caseload that is Hispanic",
+                               "Government liberalism",
+                               "Unemployment rate", 
+                               "Per capita income (in thousands)",
                                "Fiscal balance as a percent of spending",
                                "Percent change in caseload",
-                               "Government liberalism",
-                               "Work participation rate", 
-                               "Unemployment rate", 
-                               "Per capita income (in thousands)"),
+                               "Work participation rate"),
           omit = "year",
           omit.labels = c("Time Fixed Effects"),
-          notes.align = "l",
+          notes.align = "r",
           star.cutoffs = c(.05),
           notes = "*p < 0.05",
           notes.append = FALSE,
@@ -409,44 +443,4 @@ stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
           column.sep.width = "1pt",
           font.size = "small",
           type = "latex",
-          out = "Figures and Tables/TableA.2.html")
-
-# Table A.3 ####
-ann_means <- ann_means %>% 
-  spread(key = "category", value = "value")
-
-write_csv(ann_means, "Figures and Tables/TableA.3.csv")
-
-# Table A.4 ####
-ann_medians <- avg_props %>% 
-  gather("category", "value", -STATE, -year) %>% 
-  group_by(year, category) %>% 
-  summarise(value = median(value, na.rm = TRUE))
-
-ann_medians <- ann_medians %>% 
-  spread(key = "category", value = "value")
-
-write_csv(ann_medians, "Figures and Tables/TableA.4.csv")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+          out = "Figures and Tables/TableA.4.html")

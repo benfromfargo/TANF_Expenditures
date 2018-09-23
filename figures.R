@@ -9,8 +9,16 @@ library(extrafont)
 library(plm)
 library(gridExtra)
 
+my_theme <- theme_classic() +
+  theme(text = element_text(family = "Times New Roman"),
+        panel.grid.major.y = element_line(colour = "#dedddd"),
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank())
+theme_set(my_theme)
+
 # Figure 1 ####
 ## @knitr Figure.1
+
 ann_means <- avg_props %>% 
   gather("category", "value", -STATE, -year) %>% 
   group_by(year, category) %>% 
@@ -60,6 +68,7 @@ See appendix for more information.",
 
 # Figure 2 ####
 ## @knitr Figure.2
+
 x <- ann_means %>% 
   filter(category != "ba" & category != "admin" & category != "other" & category != "prior" & category != "ssbg") %>%
   mutate(label = ifelse(year == "2013", category, NA)) %>% 
@@ -92,6 +101,7 @@ grid.draw(gt)
 
 # Figure 3 ####
 ## @knitr Figure.3
+
 avg_props_id <- avg_props %>% 
   arrange(desc(year)) %>% 
   mutate(state_id = rep_len(c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", 
@@ -126,10 +136,11 @@ suppressWarnings(avg_props_id %>%
                    scale_y_continuous(labels = scales::percent_format(1),
                                       expand = c(0,0),
                                       breaks = seq(0, 1, .25),
-                                      limits = c(0,1))
+                                      limits = c(0,1)))
 
 # Figure 4 ####
 ## @knitr Figure.4
+
 top_ten_98 <- avg_props_id %>% 
   filter(ba, year == 1998) %>%
   filter(!is.na(ba)) %>%
@@ -150,8 +161,12 @@ plot_one <- avg_props_id %>%
   ggplot(aes(year, ba, group = state_id, color = rank, alpha = rank)) +
   geom_line() +
   geom_point() +
-  scale_y_continuous(labels = scales::percent_format(1)) + 
-  theme(text = element_text(family = "Times New Roman")) +
+  scale_y_continuous(labels = scales::percent_format(1),
+                     expand = c(0,0),
+                     breaks = seq(0, 1, .25),
+                     limits = c(0,1)) + 
+  theme(text = element_text(family = "Times New Roman"),
+        plot.subtitle = element_text(hjust = .5, size = 10)) +
   scale_x_discrete(expand = expand_scale(mult = c(.05,.2))) +
   scale_color_manual(values = c("#cccccc", "#000000"), 
                      guide = FALSE) +
@@ -162,10 +177,13 @@ plot_one <- avg_props_id %>%
                                      state_id, NA)),
                   family = "Times New Roman",
                   size = 2,
-                  segment.colour = NA,
-                  nudge_x = .04) +
+                  segment.size = .2,
+                  direction = "y",
+                  nudge_x = .1,
+                  hjust = 0) +
   labs(x = NULL, 
-       y = NULL)
+       y = NULL,
+       subtitle = "Ten highest spending states in FY 1998")
 
 ## PLOT 2
 
@@ -177,9 +195,13 @@ plot_two <- avg_props_id %>%
   ggplot(aes(year, ba, group = state_id, color = rank, alpha = rank)) +
   geom_line() +
   geom_point() +
-  scale_y_continuous(labels = scales::percent_format(1)) + 
+  scale_y_continuous(labels = scales::percent_format(1),
+                     expand = c(0,0),
+                     breaks = seq(0, 1, .25),
+                     limits = c(0,1)) + 
   scale_x_discrete(expand = expand_scale(mult = c(.05,.2))) +
-  theme(text = element_text(family = "Times New Roman")) +
+  theme(text = element_text(family = "Times New Roman"),
+        plot.subtitle = element_text(hjust = .5, size = 10)) +
   scale_color_manual(values = c("#cccccc", "#000000"), 
                      guide = FALSE) +
   scale_alpha_manual(values = c(.4, .8),
@@ -189,16 +211,19 @@ plot_two <- avg_props_id %>%
                                      state_id, NA)),
                   family = "Times New Roman",
                   size = 2,
-                  segment.colour = NA,
-                  nudge_x = .04) +
+                  segment.size = .2,
+                  direction = "y",
+                  nudge_x = .1,
+                  hjust = 0) +
   labs(x = NULL, 
-       y = NULL)
+       y = NULL,
+       subtitle = "Ten lowest spending states in FY 1998")
 
-gt <- arrangeGrob(plot_one, plot_two, ncol = 2,
+grid.arrange(plot_one, plot_two, ncol = 2,
                   bottom = textGrob("Note: South Carolina and Tennessee removed due to negative reported basic assistance expenditures in FY 1998. See appendix for more information.",
                                     gp = gpar(fontsize = 7,
                                               fontfamily = "Times New Roman"),
-                                    hjust = .45))
+                                    hjust = .48))
 
 # Table 1 ####
 ## @knitr Table.1
@@ -246,6 +271,7 @@ stargazer(p1, p2, p3, p4,
 
 # Figure 5 ####
 ## @knitr Figure.5
+
 time_effects <- data.frame(summary(p4)["coefficients"])
 time_effects <- rownames_to_column(time_effects, "year") 
 
@@ -253,13 +279,14 @@ time_effects <- time_effects %>%
   filter((str_detect(time_effects$year, "factor"))) %>% 
   mutate(year = 1999:2013)
 
-time_effects %>% 
+time_effects %>%
+  mutate(year = as.character(year)) %>% 
   ggplot() +
   geom_point(aes(x = year, y = coefficients.Estimate)) +
   geom_errorbar(aes(x = year,
                     ymin = coefficients.Estimate - 1.96*coefficients.Std..Error,
                     ymax = coefficients.Estimate + 1.96*coefficients.Std..Error)) +
-  scale_x_discrete(breaks = c("1998", "2003", "2008", "2013")) +
+  scale_x_discrete(breaks = c(1999, 2003, 2008, 2013)) +
   scale_y_continuous(limits = c(-40, 0),
                      breaks = c(0, -10, -20, -30, -40)) +
   labs(caption = "Note: Error bars represent 95% confidence intervals.",
