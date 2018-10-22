@@ -1,11 +1,11 @@
 ########### TEST ###########
-library(lfe)
+
 library(stargazer)
-library(readstata13)
+
 
 source("TANF_clean.r")
 
-csp <- read_csv("http://ippsr.msu.edu/sites/default/files/correlatesofstatepolicyprojectv2_1.csv") %>% 
+csp <- read_csv("Input Data/correlatesofstatepolicyprojectv2_1.csv") %>%
   select(state, year, ranney4_control) %>% 
   filter(year > 1996) %>% 
   mutate(year = year +1) %>% 
@@ -15,7 +15,7 @@ csp <- read_csv("http://ippsr.msu.edu/sites/default/files/correlatesofstatepolic
   arrange(year) %>% 
   mutate(state_id = rep(state.abb, 16))
 
-test <- read.dta13("caughey_warshaw_summary.dta") %>% 
+test <- read.dta13("Input Data/caughey_warshaw_summary.dta") %>% 
   as.tibble() %>% 
   mutate(year = as.numeric(as.character(year))) %>% 
   mutate(stpo = as.character(stpo)) %>% 
@@ -35,7 +35,8 @@ avg_props_pdata <- avg_props_pdata %>%
   mutate(ba_dif = ba - service) %>% 
   arrange(STATE) %>% 
   group_by(STATE) %>% 
-  mutate(ba_dif_before = lag(ba_dif)) %>% 
+  mutate(ba_dif_before = dplyr::lag(ba_dif, n = 1)) %>% 
+  mutate(ba_dif_before2 = dplyr::lag(ba_dif, n = 2)) %>% 
   ungroup()
 
 avg_props_pdata <- left_join(test, avg_props_pdata, by = c("year", "state_id"))
@@ -44,19 +45,14 @@ anti_join(test, avg_props_pdata, by = c("year", "state_id"))
 avg_props_pdata <- left_join(csp, avg_props_pdata, by = c("year", "state_id"))
 anti_join(csp, avg_props_pdata, by = c("year", "state_id"))
 
-p1 <- felm(ba_dif ~ african_americans + hispanics + policyeconlib_est + unemployment +
+
+p1 <- felm(ba_dif ~ african_americans + hispanics + ranney4_control + unemployment +
              pcpi_regional + fiscal_stability + caseload + wpr
            | STATE + year | 0 | STATE, 
            data = avg_props_pdata)
 
-p2 <- felm(ba_dif ~ african_americans + hispanics + policyeconlib_est + unemployment +
-            pcpi_regional + fiscal_stability + caseload + wpr + ba_dif_before
-           | STATE + year | 0 | STATE, 
-           data = avg_props_pdata)
-
-stargazer(p1, p2,
+stargazer(p1,
           title = "Regression Output",
-          column.labels = c("Model 1", "Model 2"),
           dep.var.labels = "Basic Assistance minus WORSSI",
           covariate.labels = c("Percent of caseload that is African American", 
                                 "Percent of caseload that is Hispanic",
@@ -67,8 +63,6 @@ stargazer(p1, p2,
                                 "Percent change in caseload",
                                 "Work participation rate",
                                 "Difference in prior year"),
-          add.lines = list(c("Time FEs", "Yes", "Yes", "Yes", "Yes"),
-                           c("State FEs", "Yes", "Yes", "Yes", "Yes")),
           header = FALSE,
           star.cutoffs = c(.05),
           notes = "*p < 0.05; SEs clustered by state",
@@ -81,47 +75,12 @@ stargazer(p1, p2,
           type = "latex",
           out = "Figures and Tables/Table1_test.html")
 
-p3 <- felm(ba_dif ~ policyeconlib_est
-           | STATE + year | 0 | STATE, 
-           data = avg_props_pdata)
-
-p4 <- felm(ba_dif ~ policyeconlib_est + african_americans
-           | STATE + year | 0 | STATE, 
-           data = avg_props_pdata)
-
-p5 <- felm(ba_dif ~ policyeconlib_est + african_americans + policyeconlib_est*african_americans
-           | STATE + year | 0 | STATE, 
-           data = avg_props_pdata)
-
-p6 <- felm(ba_dif ~ ranney4_control
-           | STATE + year | 0 | STATE, 
-           data = avg_props_pdata)
-
-p7 <- felm(ba_dif ~ ranney4_control + african_americans
-           | STATE + year | 0 | STATE, 
-           data = avg_props_pdata)
-
-p8 <- felm(ba_dif ~ ranney4_control + african_americans + ranney4_control*african_americans
-           | STATE + year | 0 | STATE, 
-           data = avg_props_pdata)
-
-stargazer(p3, p4, p5, p6, p7, p8, 
-          title = "Regression Output",
-          column.labels = NULL,
-          dep.var.labels = "Basic Assistance minus WORSSI",
-          add.lines = list(c("Time FEs", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes"),
-                           c("State FEs", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes")),
-          header = FALSE,
-          star.cutoffs = c(.05),
-          notes = "*p < 0.05; SEs clustered by state",
-          notes.append = FALSE,
-          notes.align = "r",
-          model.numbers = FALSE,
-          initial.zero = FALSE,
-          column.sep.width = "1pt",
-          font.size = "small",
-          type = "latex",
-          out = "Figures and Tables/Table2_test.html")
+library(plm)
+pwartest(ba_dif ~ african_americans + hispanics + ranney4_control + unemployment +
+           pcpi_regional + fiscal_stability + caseload + wpr + 
+           ba_dif_before + factor(avg_props_pdata$state),
+         data = avg_props_pdata)
+detach("package:plm", unload=TRUE)
 
 
 
@@ -130,6 +89,59 @@ stargazer(p3, p4, p5, p6, p7, p8,
 
 
 
+
+
+
+
+#p3 <- felm(ba_dif ~ policyeconlib_est
+#           | STATE + year | 0 | STATE, 
+#           data = avg_props_pdata)
+#
+#p4 <- felm(ba_dif ~ policyeconlib_est + african_americans
+#           | STATE + year | 0 | STATE, 
+#           data = avg_props_pdata)
+#
+#p5 <- felm(ba_dif ~ policyeconlib_est + african_americans + policyeconlib_est*african_americans
+#           | STATE + year | 0 | STATE, 
+#           data = avg_props_pdata)
+#
+#p6 <- felm(ba_dif ~ ranney4_control
+#           | STATE + year | 0 | STATE, 
+#           data = avg_props_pdata)
+#
+#p7 <- felm(ba_dif ~ ranney4_control + african_americans
+#           | STATE + year | 0 | STATE, 
+#           data = avg_props_pdata)
+#
+#p8 <- felm(ba_dif ~ ranney4_control + african_americans + ranney4_control*african_americans
+#           | STATE + year | 0 | STATE, 
+#           data = avg_props_pdata)
+#
+#stargazer(p3, p4, p5, p6, p7, p8, 
+#          title = "Regression Output",
+#          column.labels = NULL,
+#          dep.var.labels = "Basic Assistance minus WORSSI",
+#          add.lines = list(c("Time FEs", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes"),
+#                           c("State FEs", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes")),
+#          header = FALSE,
+#          star.cutoffs = c(.05),
+#          notes = "*p < 0.05; SEs clustered by state",
+#          notes.append = FALSE,
+#          notes.align = "r",
+#          model.numbers = FALSE,
+#          initial.zero = FALSE,
+#          column.sep.width = "1pt",
+#          font.size = "small",
+#          type = "latex",
+#          out = "Figures and Tables/Table2_test.html")
+#
+#
+#
+#
+#
+#
+#
+#
 #boom <- spread(ann_means_vis, category, value) %>% 
 #  mutate(dif = ba - service)
 #

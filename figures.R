@@ -6,8 +6,9 @@ library(gtable)
 library(grid)
 library(stargazer)
 library(extrafont)
-library(plm)
+library(lfe)
 library(gridExtra)
+library(readstata13)
 
 my_theme <- theme_classic() +
   theme(text = element_text(family = "Times New Roman"),
@@ -42,7 +43,7 @@ ggplot(ann_means_vis, aes(year, value, color = category, group = category)) +
   scale_y_continuous(labels = scales::percent_format(1),
                      expand = c(0, 0),
                      limits = c(0, .6),
-                     breaks = c(0, .2, .4, .6)) +
+                     breaks = seq(0, .6, .1)) +
   scale_color_manual(values = c("#000000", "#000000", "#000000"),
                      guide = FALSE) +
   theme(plot.caption = element_text(size = 7, hjust = 0)) +
@@ -227,46 +228,82 @@ grid.arrange(plot_one, plot_two, ncol = 2,
 
 # Table 1 ####
 ## @knitr Table.1
-# Model 1 : Without caseload, pcpi_regional, and unemployment - no time effects
-p1 <- plm(ba ~ african_americans + hispanics + fiscal_stability + liberalism + wpr,
-          data = avg_props_pdata,
-          model = "within", 
-          effect = "individual")
+p1 <- felm(ba_dif ~ african_americans + hispanics + policyeconlib_est + unemployment +
+             pcpi_regional + fiscal_stability + caseload + wpr
+           | STATE + year | 0 | STATE, 
+           data = avg_props_pdata)
 
-# Model 2 : Without pcpi_regional and unemployment - no time effects
-p2 <- plm(ba ~ african_americans + hispanics + fiscal_stability + caseload + liberalism + wpr,
-          data = avg_props_pdata,
-          model = "within", 
-          effect = "individual")
+p2 <- felm(ba_dif ~ african_americans + hispanics + policyeconlib_est + unemployment +
+             pcpi_regional + fiscal_stability + caseload + wpr + ba_dif_before
+           | STATE | 0 | STATE, 
+           data = avg_props_pdata)
 
-# Model 3 : All variables - no time effects 
-p3 <- plm(ba ~ african_americans + hispanics + fiscal_stability + caseload + liberalism + wpr + 
-            unemployment + pcpi_regional,
-          data = avg_props_pdata, 
-          model = "within", 
-          effect = "individual")
+p3 <- felm(ba_dif ~ african_americans + hispanics + policyeconlib_est + unemployment +
+             pcpi_regional + fiscal_stability + caseload + wpr + ba_dif_before2
+           | STATE | 0 | STATE, 
+           data = avg_props_pdata)
 
-# Model 4 : All variables - time effects 
-p4 <- plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability + caseload + liberalism + wpr + 
-            unemployment + pcpi_regional,
-          data = avg_props_pdata, 
-          model = "within", 
-          effect = "individual")
-
-stargazer(p1, p2, p3, p4,
+stargazer(p1, p2, p3,
           title = "Regression Output",
-          column.labels = c("Model 1", "Model 2", "Model 3", "Model 4"),
-          covariate.labels = c("african americans", NA, "fiscal stability", NA, NA, NA, NA, "pcpi regional"),
-          dep.var.labels = "Basic Assistance Expenditures as a Percentage of Total TANF Expenditures",
-          omit = "year",
+          column.labels = c("Model 1", "Model 2", "Model 3"),
+          covariate.labels = c("Percent of caseload that is African American", 
+                               "Percent of caseload that is Hispanic",
+                               "Economic policy liberalism",
+                               "Unemployment rate", 
+                               "Per capita income (in thousands)",
+                               "Fiscal balance as a percent of spending",
+                               "Percent change in caseload",
+                               "Work participation rate",
+                               "Difference in prior year"),
+          dep.var.labels = '\\multirow{2}{4 cm}{Difference between percent of TANF funds spent on basic assistance and percent spent on work-related, in-kind, and short-term benefits}',
+          notes = "*p < 0.05; standard errors clustered by state",
+          add.lines = list(c("Time Fixed Effects", "Yes", "No", "No"),
+                           c("Individual Fixed Effects", "Yes", "Yes", "Yes")),
+          notes.append = FALSE,
           header = FALSE,
-          omit.labels = c("Time Fixed Effects"),
           notes.align = "r",
           model.numbers = FALSE,
           initial.zero = FALSE,
           column.sep.width = "1pt",
           font.size = "small",
-          type = "latex")
+          type = "latex",
+          out = "Figures and Tables/Table1_test.html")
+
+# When you are ready to render this in markdown, change output to .tex and read 
+# https://stackoverflow.com/questions/49138023/getting-stargazer-column-labels-to-print-on-two-or-three-lines
+
+# We cannot reject the null hypothesis of no cross sectional dependence
+plm::pcdtest(ba_dif ~ african_americans + hispanics + policyeconlib_est + unemployment +
+               pcpi_regional + fiscal_stability + caseload + wpr + factor(year) + factor(STATE),
+             data = avg_props_pdata)
+
+library(plm)
+pbgtest(ba_dif ~ african_americans + hispanics + policyeconlib_est + unemployment +
+               pcpi_regional + fiscal_stability + caseload + wpr + factor(year) + factor(STATE),
+             data = avg_props_pdata)
+detach(package:plm, unload = TRUE)
+
+# We cannot reject the null hypothesis of homoskedacticity
+lmtest::bptest(p1)
+
+p1_v2 <- plm(ba_dif ~ african_americans + hispanics + policyeconlib_est + unemployment +
+                    pcpi_regional + fiscal_stability + caseload + wpr + factor(year),
+                  data = avg_props_pdata,
+                  model = "fd")
+
+p1_v2$vcov <- vcovHC(p1_v2, type="HC0", cluster = "group")
+
+stargazer(p1_v2, p1, 
+          type = "text", 
+          omit = "year")
+
+
+          type = "text")
+
+
+
+
+
 
 
 # Figure 5 ####

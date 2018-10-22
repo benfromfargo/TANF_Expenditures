@@ -444,3 +444,6 @@ stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
           font.size = "small",
           type = "latex",
           out = "Figures and Tables/TableA.4.html")
+  
+
+
