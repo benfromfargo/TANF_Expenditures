@@ -3,6 +3,7 @@ library(tidyverse)
 library(openxlsx)
 library(readxl)
 library(zoo)
+library(readstata13)
 
 #Remove scientific notation 
 options(scipen = 999)
@@ -89,10 +90,11 @@ panel_dat <- raw_data %>%
 panel_dat <- left_join(panel_dat, ind_data, by = c("STATE", "year"))
 anti_join(panel_dat, ind_data, by = c("STATE", "year"))
 
-csp <- read_csv("Input Data/correlatesofstatepolicyprojectv2_1.csv", 
+suppressWarnings(csp <- read_csv("Input Data/correlatesofstatepolicyprojectv2_1.csv", 
                 col_types = cols_only(state = col_character(),
                                       year = col_integer(),
-                                      ranney4_control = col_double())) %>%
+                                      ranney4_control = col_double())))
+csp <- csp %>% 
   select(state, year, ranney4_control) %>% 
   filter(year > 1996) %>% 
   mutate(year = year +1) %>% 
@@ -101,6 +103,12 @@ csp <- read_csv("Input Data/correlatesofstatepolicyprojectv2_1.csv",
   filter(state != "District of Columbia") %>% 
   arrange(year) %>% 
   mutate(state_id = rep(state.abb, 16))
+
+csp_dc <- tibble(state = rep("District of Columbia", 16),
+                 year = c(1998:2013),
+                 ranney4_control = NA,
+                 state_id = "DC")
+csp <- rbind(csp, csp_dc)
 
 test <- read.dta13("Input Data/caughey_warshaw_summary.dta") %>% 
   as.tibble() %>% 
@@ -113,25 +121,18 @@ test <- read.dta13("Input Data/caughey_warshaw_summary.dta") %>%
   select(1:8) %>% 
   mutate(year = as.character(year))
 
-avg_props_pdata <- panel_dat %>% 
-  filter(STATE != "DIST.OF COLUMBIA") %>%
+abbrvs <- append(state.abb, "DC", 8)
+
+panel_dat <- panel_dat %>% 
   ungroup() %>% 
   arrange(year) %>% 
-  mutate(state_id = rep(state.abb, 16)) %>% 
-  mutate(service = cc + pregnancy + shortben + tax + work) %>% 
-  mutate(ba_dif = log(ba - service)) %>% 
-  arrange(STATE) %>% 
-  group_by(STATE) %>% 
-  mutate(ba_dif_before = dplyr::lag(ba_dif, n = 1)) %>% 
-  mutate(ba_dif_before2 = dplyr::lag(ba_dif, n = 2)) %>% 
-  ungroup()
+  mutate(state_id = rep_len(abbrvs, 816))
 
-avg_props_pdata <- left_join(test, avg_props_pdata, by = c("year", "state_id"))
-anti_join(test, avg_props_pdata, by = c("year", "state_id"))
+avg_props_pdata <- left_join(panel_dat, csp, by = c("year", "state_id"))
+anti_join(csp, panel_dat, by = c("year", "state_id"))
 
-avg_props_pdata <- left_join(csp, avg_props_pdata, by = c("year", "state_id"))
-anti_join(csp, avg_props_pdata, by = c("year", "state_id"))
 
+           
 
 
 

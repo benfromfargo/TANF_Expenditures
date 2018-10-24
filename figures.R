@@ -6,7 +6,7 @@ library(gtable)
 library(grid)
 library(stargazer)
 library(extrafont)
-library(lfe)
+library(plm)
 library(gridExtra)
 library(readstata13)
 
@@ -269,36 +269,122 @@ stargazer(p1, p2, p3,
           type = "latex",
           out = "Figures and Tables/Table1_test.html")
 
-# When you are ready to render this in markdown, change output to .tex and read 
-# https://stackoverflow.com/questions/49138023/getting-stargazer-column-labels-to-print-on-two-or-three-lines
+panel_98 <- avg_props_pdata %>% 
+  filter(year == 1998)
+panel_05 <- avg_props_pdata %>% 
+  filter(year == 2005)
+panel_13 <- avg_props_pdata %>% 
+  filter(year == 2013)
 
-# We cannot reject the null hypothesis of no cross sectional dependence
-plm::pcdtest(ba_dif ~ african_americans + hispanics + policyeconlib_est + unemployment +
-               pcpi_regional + fiscal_stability + caseload + wpr + factor(year) + factor(STATE),
-             data = avg_props_pdata)
+l1 <- lm(log(ba) ~ african_americans + hispanics + liberalism + unemployment +
+           log(pcpi_regional) + fiscal_stability + log(caseload) + wpr, 
+         data = panel_98)
+l2 <- lm(log(ba) ~ african_americans + hispanics + liberalism + unemployment +
+           log(pcpi_regional) + fiscal_stability + log(caseload) + wpr, 
+         data = panel_05)
+l3 <- lm(log(ba) ~ african_americans + hispanics + liberalism + unemployment +
+           log(pcpi_regional) + fiscal_stability + log(caseload) + wpr, 
+         data = panel_13)
 
-library(plm)
-pbgtest(ba_dif ~ african_americans + hispanics + policyeconlib_est + unemployment +
-               pcpi_regional + fiscal_stability + caseload + wpr + factor(year) + factor(STATE),
-             data = avg_props_pdata)
-detach(package:plm, unload = TRUE)
+stargazer(l1, l2, l3, 
+          type = "text")
 
-# We cannot reject the null hypothesis of homoskedacticity
-lmtest::bptest(p1)
+# Show table with FD, FE, and lagged DV
+# Maybe argue for lagged DV model since time invariant is hard to square (caseload change? - maybe here 
+# rather than explicit (?))
 
-p1_v2 <- plm(ba_dif ~ african_americans + hispanics + policyeconlib_est + unemployment +
-                    pcpi_regional + fiscal_stability + caseload + wpr + factor(year),
+
+
+
+
+
+p1 <- plm(log(ba) ~ ranney4_control + 
+            hispanics + 
+            african_americans +
+            ranney4_control*hispanics +
+            ranney4_control*african_americans +
+            factor(year), 
+             data = avg_props_pdata, 
+             model = "fd", 
+          index = c("state", "year"))
+
+p2 <- plm(log(ba) ~ policyeconlib_est + 
+            hispanics + 
+            african_americans +
+            policyeconlib_est*hispanics +
+            policyeconlib_est*african_americans +
+            lag(log(ba), 2), 
+          data = avg_props_pdata, 
+          model = "fd", 
+          index = c("state", "year"))
+
+p3 <- plm(log(ba) ~ ranney4_control + 
+            hispanics + 
+            african_americans +
+            ranney4_control*hispanics +
+            ranney4_control*african_americans +
+            lag(log(ba), 2), 
+          data = avg_props_pdata, 
+          model = "within", 
+          index = c("state", "year"))
+
+p4 <- plm(log(ba) ~ policyeconlib_est + 
+            hispanics + 
+            african_americans +
+            policyeconlib_est*hispanics +
+            policyeconlib_est*african_americans +
+            lag(log(ba), 2), 
+          data = avg_props_pdata, 
+          model = "within", 
+          index = c("state", "year"))
+
+p1$vcov <- vcovHC(p1, type="HC0", method = "arellano", cluster = "group")
+p2$vcov <- vcovHC(p2, type="HC0", method = "arellano", cluster = "group")
+p3$vcov <- vcovHC(p3, type="HC0", method = "arellano", cluster = "group")
+p4$vcov <- vcovHC(p4, type="HC0", method = "arellano", cluster = "group")
+
+
+stargazer(p1, p2, p3, p4,
+          type = "text", 
+          omit = "year")            
+
+
+
+
+        
+pbgtest(p1)
+pbgtest(p2)
+pbgtest(p3)
+pbgtest(p4)
+
+
+p1_v2 <- plm(log(ba) ~ african_americans + hispanics + ranney4_control + unemployment +
+                    log(pcpi_regional) + fiscal_stability + log(caseload) + wpr + 
+               lag(log(caseload)) +
+               lag(unemployment) +
+               lag(log(pcpi_regional)) +
+               factor(year),
                   data = avg_props_pdata,
                   model = "fd")
+p1_v3 <- plm(log(ba) ~ african_americans + hispanics + ranney4_control + unemployment +
+               log(pcpi_regional) + fiscal_stability + log(caseload) + wpr + 
+               lag(log(caseload)) +
+               lag(unemployment) +
+               lag(log(pcpi_regional)) +
+               factor(year),
+             data = avg_props_pdata,
+             model = "within")
 
-p1_v2$vcov <- vcovHC(p1_v2, type="HC0", cluster = "group")
+p1_v2$vcov <- vcovHC(p1_v2, type="HC0", method = "arellano", cluster = "group")
+p1_v3$vcov <- vcovHC(p1_v3, type="HC0", method = "arellano", cluster = "group")
 
-stargazer(p1_v2, p1, 
+stargazer(p1_v2, p1_v3, 
           type = "text", 
-          omit = "year")
+          omit = c("year", "STATE"))
 
 
-          type = "text")
+lmtest::bptest(p1_v2)
+
 
 
 

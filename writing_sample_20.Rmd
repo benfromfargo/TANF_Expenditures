@@ -71,25 +71,25 @@ In a particularly broad delegation of authority, the PRWORA empowers states to s
 ###II
 For this analysis, I group TANF expenditures into ten spending categories.^[ See Table 3 in the appendix for category groups.] Figure 1 aggregates those ten categories into three types of spending: basic assistance; work-related, in-kind, and short-term benefits; and other. In FY 1998, on average, a state spent 55.0% of total TANF expenditures on basic assistance and 19.7% on work-related, in-kind, and short-term benefits, with the remaining 26.4% dedicated to other areas, including administrative costs and transfers to other programs.^[ For more information on "other" spending, see Table 3 in the appendix, @derrUnderstandingTwoCategories2009, and @officeofcommunityservicesSocialServicesBlock2015.] The composition of TANF spending shifted in the years ahead as states decreased the share of TANF funds spent on basic assistance and increased proportional expenditures on work-related, in-kind, and short-term benefits. By FY 2013, the average state spent 23.6% of total TANF spending on basic assistance, a 57.1% decrease from FY 1998, and 43.2% of total TANF spending on work-related, in-kind, and short-term benefits. 
 
-``` {r figure1, echo = FALSE, fig.align = "center", fig.cap = "Mean Proportional TANF Spending by Type, FY 1998 - 2013"}
+``` {r figure1, echo = FALSE, fig.align = "center", fig.cap = "Mean Proportional TANF Spending by Type, FY 1998 - 2013", fig.height = 4, fig.width = 4}
 <<Figure.1>>
 ```
 
 The over two-fold increase in the average share of TANF funds dedicated to work-related, in-kind, and short-term benefits is shown in more detail in Figure 2, which displays annual proportional expenditures for the spending type's five composite categories. Over time, as states decreased basic assistance spending, they increased the share of funds allocated to a variety of different services and benefits for low-income families. Of the five categories, child care and work-related activities and supports made up the bulk of expenditures in FY 1998 and 2013. However, after a dramatic proportional increase in spending in the late 1990s, spending on both categories was roughly stagnant over the following years and remained below all-time high levels in FY 2013. In contrast, expenditures on marriage and pregnancy programs aimed at supporting healthy marriages and educating families about family planning, refundable tax credits, and diversion benefits (which usually provide one-time lump sum payments to families to help them avoid entering the state’s TANF program) consistently increased between FY 1998 and 2013. While the average state spent no TANF funds on any of the three categories in FY 1998, the categories collectively comprised 14.7% of the average state's TANF spending in FY 2013, with marriage and pregnancy programs alone comprising 7.2%. 
 
-``` {r figure2, echo = FALSE, fig.align = "center", fig.cap = "Mean Proportional Expenditures on Work-Related, In-Kind, and Short-Term Benefits, FY 1998 - 2013"}
+``` {r figure2, echo = FALSE, fig.align = "center", fig.cap = "Mean Proportional Expenditures on Work-Related, In-Kind, and Short-Term Benefits, FY 1998 - 2013", fig.height = 4, fig.width = 4}
 <<Figure.2>>
 ```
 
 The discussion so far has focused on the national shift away from basic assistance spending toward work supports, in-kind benefits and services. While such a focus provides an important aggregated perspective on TANF spending, the PRWORA's broad devolution of policymaking power may have impacted the degree to which a state participated in the national trend of basic assistance retrenchment. In order to more closely examine state-level trends, Figure 3 provides annual boxplots of basic assistance spending.^[ The boxplots in Figure 3 display annual median expenditures (marked by the thick black line) and the first and third quartiles (the upper and lower ends of the “box”). The lines protruding from the boxes equal the distance between the first or third quartile and the value furthest from the respective quartile that does not exceed 1.5 times the difference between the first and third quartiles. Labeled outliers are either greater or less than 1.5 times the difference between the first and third quartiles.] The boxplots show that, as median basic assistance spending decreased, the distribution of state spending remained relatively constant, with annual standard deviations hovering between 10.1% (in FY 2008) and 13.8% in (in FY 1999). Consequently, even states with relatively high levels of basic assistance expenditures reduced cash assistance spending. Of the states that spent the greatest share of TANF funds on basic assistance between FY 2008 and 2013 (i.e. Maine, California, Alaska, and South Dakota), none spent more than the 75th percentile of proportional basic assistance expenditures in FY 1998 (62.6%) and only Maine exceeded the median level of basic assistance spending in FY 1998 (53.1%).
 
-``` {r figure3, echo = FALSE, warning = FALSE, fig.align = "center", fig.cap = "Boxplots of Proportional Basic Assistance Expenditures by State, FY 1998 - 2013"}
+``` {r figure3, echo = FALSE, warning = FALSE, fig.align = "center", fig.cap = "Boxplots of Proportional Basic Assistance Expenditures by State, FY 1998 - 2013", fig.height = 4, fig.width = 4}
 <<Figure.3>>
 ```
 
 Although the overall variation of the distribution remained relatively constant between FY 1998 and 2013, the relative rank order of states within the distribution was not static. As aggregate basic assistance spending decreased, the relative order of states was reshuffled, with many relatively higher spending states becoming relatively lower spending states and vice versa (Figure 4). For instance, of the ten states that spent the greatest portion of total TANF funds on basic assistance in FY 1998, only three – Alaska, California, and Hawaii – remained among the ten highest spending states in FY 2013. Illinois, another high-spending state in FY 1998, reduced basic assistance spending to such an extent that it was one of the ten lowest spending states in FY 2013. States that spent relatively less on basic assistance in FY 1998 also shifted their spending relative to their peers. Indiana and Oklahoma were the only states to be among the ten lowest spending states in both FY 1998 and FY 2013. On the other hand, Virginia’s relatively small decrease in proportional basic assistance spending meant it was among the ten lowest spending states in FY 1998 and the ten highest spending states in FY 2013. 
 
-``` {r figure4, echo = FALSE, fig.align = "center", fig.cap = "Proportional Basic Assistance Expenditures in FY 1998 and 2013"}
+``` {r figure4, echo = FALSE, fig.align = "center", fig.cap = "Proportional Basic Assistance Expenditures in FY 1998 and 2013", fig.height = 4, fig.width = 4}
 <<Figure.4>>
 ```
 
@@ -143,7 +143,7 @@ Model 3 builds upon Model 2 by incorporating the economic variables *unemploymen
 ``` {r include=FALSE}
 suppressMessages(library("stargazer"))
 ```
-``` {r table1, results = "asis", message = FALSE}
+``` {r table1, results = "asis", message = FALSE, fig.height = 4, fig.width = 4}
 <<Table.1>>
 ```
 
