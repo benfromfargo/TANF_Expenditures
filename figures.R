@@ -228,169 +228,102 @@ grid.arrange(plot_one, plot_two, ncol = 2,
 
 # Table 1 ####
 ## @knitr Table.1
-p1 <- felm(ba_dif ~ african_americans + hispanics + policyeconlib_est + unemployment +
-             pcpi_regional + fiscal_stability + caseload + wpr
-           | STATE + year | 0 | STATE, 
-           data = avg_props_pdata)
-
-p2 <- felm(ba_dif ~ african_americans + hispanics + policyeconlib_est + unemployment +
-             pcpi_regional + fiscal_stability + caseload + wpr + ba_dif_before
-           | STATE | 0 | STATE, 
-           data = avg_props_pdata)
-
-p3 <- felm(ba_dif ~ african_americans + hispanics + policyeconlib_est + unemployment +
-             pcpi_regional + fiscal_stability + caseload + wpr + ba_dif_before2
-           | STATE | 0 | STATE, 
-           data = avg_props_pdata)
-
-stargazer(p1, p2, p3,
-          title = "Regression Output",
-          column.labels = c("Model 1", "Model 2", "Model 3"),
-          covariate.labels = c("Percent of caseload that is African American", 
-                               "Percent of caseload that is Hispanic",
-                               "Economic policy liberalism",
-                               "Unemployment rate", 
-                               "Per capita income (in thousands)",
-                               "Fiscal balance as a percent of spending",
-                               "Percent change in caseload",
-                               "Work participation rate",
-                               "Difference in prior year"),
-          dep.var.labels = '\\multirow{2}{4 cm}{Difference between percent of TANF funds spent on basic assistance and percent spent on work-related, in-kind, and short-term benefits}',
-          notes = "*p < 0.05; standard errors clustered by state",
-          add.lines = list(c("Time Fixed Effects", "Yes", "No", "No"),
-                           c("Individual Fixed Effects", "Yes", "Yes", "Yes")),
-          notes.append = FALSE,
-          header = FALSE,
-          notes.align = "r",
-          model.numbers = FALSE,
-          initial.zero = FALSE,
-          column.sep.width = "1pt",
-          font.size = "small",
-          type = "latex",
-          out = "Figures and Tables/Table1_test.html")
-
-panel_98 <- avg_props_pdata %>% 
-  filter(year == 1998)
+panel_99 <- avg_props_pdata %>% 
+  filter(year == 1999)
 panel_05 <- avg_props_pdata %>% 
   filter(year == 2005)
 panel_13 <- avg_props_pdata %>% 
   filter(year == 2013)
 
-l1 <- lm(log(ba) ~ african_americans + hispanics + liberalism + unemployment +
+l1 <- lm(log(ba) ~ african_americans + hispanics + log(liberalism) + unemployment +
            log(pcpi_regional) + fiscal_stability + log(caseload) + wpr, 
-         data = panel_98)
-l2 <- lm(log(ba) ~ african_americans + hispanics + liberalism + unemployment +
+         data = panel_99)
+l2 <- lm(log(ba) ~ african_americans + hispanics + log(liberalism) + unemployment +
            log(pcpi_regional) + fiscal_stability + log(caseload) + wpr, 
          data = panel_05)
-l3 <- lm(log(ba) ~ african_americans + hispanics + liberalism + unemployment +
+l3 <- lm(log(ba) ~ african_americans + hispanics + log(liberalism) + unemployment +
            log(pcpi_regional) + fiscal_stability + log(caseload) + wpr, 
          data = panel_13)
 
 stargazer(l1, l2, l3, 
-          type = "text")
+          title = "Cross-Section Regression Output",
+          column.labels = c("1999", "2005", "2013"),
+          covariate.labels = c("Percent of caseload that is African American", 
+                               "Percent of caseload that is Hispanic",
+                               "Economic policy liberalism\\textsuperscript{\\textdagger}",
+                               "Unemployment rate", 
+                               "Real per capita income\\textsuperscript{\\textdagger}",
+                               "Remaining fiscal balance as a percent of total spending",
+                               "Caseload size\\textsuperscript{\\textdagger}",
+                               "Work participation rate"),
+          dep.var.labels = "TANF funds spent on basic assistance\\textsuperscript{\\textdagger}",
+          notes = "\\textsuperscript{\\textdagger}variable is logged; *p < 0.05",
+          notes.append = FALSE,
+          header = FALSE,
+          notes.align = "r",
+          model.numbers = FALSE,
+          initial.zero = FALSE,
+          star.cutoffs = .05,
+          column.sep.width = "1pt",
+          font.size = "small",
+          type = "latex",
+          out = "Figures and Tables/Table1.html")
+
 
 # Show table with FD, FE, and lagged DV
 # Maybe argue for lagged DV model since time invariant is hard to square (caseload change? - maybe here 
 # rather than explicit (?))
 
-
-
-
-
-
-p1 <- plm(log(ba) ~ ranney4_control + 
-            hispanics + 
-            african_americans +
-            ranney4_control*hispanics +
-            ranney4_control*african_americans +
-            factor(year), 
-             data = avg_props_pdata, 
-             model = "fd", 
-          index = c("state", "year"))
-
-p2 <- plm(log(ba) ~ policyeconlib_est + 
-            hispanics + 
-            african_americans +
-            policyeconlib_est*hispanics +
-            policyeconlib_est*african_americans +
-            lag(log(ba), 2), 
-          data = avg_props_pdata, 
+# Table 2 ####
+## @knitr Table.2
+p1 <- plm(log(ba) ~ african_americans + hispanics + log(liberalism) + unemployment +
+           log(pcpi_regional) + fiscal_stability + wpr + factor(year), 
           model = "fd", 
-          index = c("state", "year"))
+          index = c("state", "year"),
+         data = avg_props_pdata)
 
-p3 <- plm(log(ba) ~ ranney4_control + 
-            hispanics + 
-            african_americans +
-            ranney4_control*hispanics +
-            ranney4_control*african_americans +
-            lag(log(ba), 2), 
-          data = avg_props_pdata, 
+p2 <- plm(log(ba) ~ african_americans + hispanics + log(liberalism) + unemployment +
+            log(pcpi_regional) + fiscal_stability + wpr + factor(year), 
           model = "within", 
-          index = c("state", "year"))
+          index = c("state", "year"),
+          data = avg_props_pdata)
 
-p4 <- plm(log(ba) ~ policyeconlib_est + 
-            hispanics + 
-            african_americans +
-            policyeconlib_est*hispanics +
-            policyeconlib_est*african_americans +
-            lag(log(ba), 2), 
-          data = avg_props_pdata, 
+p3 <- plm(log(ba) ~ african_americans + hispanics + log(liberalism) + unemployment +
+            log(pcpi_regional) + fiscal_stability + wpr + lag(log(ba, 2)), 
           model = "within", 
-          index = c("state", "year"))
+          index = c("state", "year"),
+          data = avg_props_pdata)
 
 p1$vcov <- vcovHC(p1, type="HC0", method = "arellano", cluster = "group")
 p2$vcov <- vcovHC(p2, type="HC0", method = "arellano", cluster = "group")
 p3$vcov <- vcovHC(p3, type="HC0", method = "arellano", cluster = "group")
-p4$vcov <- vcovHC(p4, type="HC0", method = "arellano", cluster = "group")
 
-
-stargazer(p1, p2, p3, p4,
-          type = "text", 
-          omit = "year")            
-
-
-
-
-        
-pbgtest(p1)
-pbgtest(p2)
-pbgtest(p3)
-pbgtest(p4)
-
-
-p1_v2 <- plm(log(ba) ~ african_americans + hispanics + ranney4_control + unemployment +
-                    log(pcpi_regional) + fiscal_stability + log(caseload) + wpr + 
-               lag(log(caseload)) +
-               lag(unemployment) +
-               lag(log(pcpi_regional)) +
-               factor(year),
-                  data = avg_props_pdata,
-                  model = "fd")
-p1_v3 <- plm(log(ba) ~ african_americans + hispanics + ranney4_control + unemployment +
-               log(pcpi_regional) + fiscal_stability + log(caseload) + wpr + 
-               lag(log(caseload)) +
-               lag(unemployment) +
-               lag(log(pcpi_regional)) +
-               factor(year),
-             data = avg_props_pdata,
-             model = "within")
-
-p1_v2$vcov <- vcovHC(p1_v2, type="HC0", method = "arellano", cluster = "group")
-p1_v3$vcov <- vcovHC(p1_v3, type="HC0", method = "arellano", cluster = "group")
-
-stargazer(p1_v2, p1_v3, 
-          type = "text", 
-          omit = c("year", "STATE"))
-
-
-lmtest::bptest(p1_v2)
-
-
-
-
-
-
-
+stargazer(p1, p2, p3, 
+          title = "Panel Regression Output",
+          column.labels = c("Model 1 (FD)", "Model 2 (Within)", "Model 3 (Lagged)"),
+          covariate.labels = c("Percent of caseload that is African American", 
+                               "Percent of caseload that is Hispanic",
+                               "Economic policy liberalism\\textsuperscript{\\textdagger}",
+                               "Unemployment rate", 
+                               "Real per capita income\\textsuperscript{\\textdagger}",
+                               "Remaining fiscal balance as a percent of total spending",
+                               "Work participation rate",
+                               "Lagged DV (t = 2)\\textsuperscript{\\textdagger}"),
+          dep.var.labels = "TANF funds spent on basic assistance\\textsuperscript{\\textdagger}",
+          notes = "\\textsuperscript{\\textdagger}variable is logged; *p < 0.05; standard errors clustered by state",
+          add.lines = list(c("Time Fixed Effects", "Yes", "Yes", "No"),
+                           c("Individual Fixed Effects", "Yes", "Yes", "Yes")),
+          notes.append = FALSE,
+          omit = "year",
+          header = FALSE,
+          notes.align = "r",
+          model.numbers = FALSE,
+          initial.zero = FALSE,
+          star.cutoffs = .05,
+          column.sep.width = "1pt",
+          font.size = "small",
+          type = "latex",
+          out = "Figures and Tables/Table2.html")
 
 # Figure 5 ####
 ## @knitr Figure.5
@@ -416,36 +349,6 @@ time_effects %>%
        x = NULL, 
        y = NULL) +
   theme(plot.caption = element_text(size=7, hjust = 0))
-
-# Table 2 ####
-## @knitr Table A.1
-p_regress <- function(data) {
-  plm(ba ~ factor(year) + african_americans + hispanics + fiscal_stability + caseload + 
-        liberalism + wpr + unemployment + pcpi_regional,
-      data = data, 
-      model = "within", 
-      effect = "individual")
-}
-fixed_props <- p_regress(props_pdata)
-fixed_avg_props <- p_regress(avg_props_pdata)
-fixed_props_avg <- p_regress(props_avg_pdata)
-
-stargazer(fixed_props, fixed_avg_props, fixed_props_avg,
-          column.labels = c("Raw Percentages", "Moving Averages of Percentages", "Percentages of Moving Averages"),
-          title = "Comparing Regression Output Across Three Data Cleaning Methods", 
-          covariate.labels = c(NA, NA, "fiscal stability", NA, NA, NA, NA, "pcpi regional"),
-          omit = "year",
-          omit.labels = c("Time Fixed Effects"),
-          notes.align = "l",
-          initial.zero = FALSE,
-          model.numbers = FALSE,
-          header = FALSE,
-          dep.var.labels = "Basic Assistance Expenditures as a Percentage of Total Expenditures",
-          column.sep.width = "1pt",
-          font.size = "small",
-          type = "latex")
-
-
 
 
 
