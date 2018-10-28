@@ -248,16 +248,16 @@ l3 <- lm(log(ba) ~ african_americans + hispanics + log(liberalism) + unemploymen
 stargazer(l1, l2, l3, 
           title = "Cross-Section Regression Output",
           column.labels = c("1999", "2005", "2013"),
-          covariate.labels = c("Percent of caseload that is African American", 
-                               "Percent of caseload that is Hispanic",
+          covariate.labels = c("Percent African American", 
+                               "Percent Hispanic",
                                "Economic policy liberalism\\textsuperscript{\\textdagger}",
                                "Unemployment rate", 
                                "Real per capita income\\textsuperscript{\\textdagger}",
-                               "Remaining fiscal balance as a percent of total spending",
+                               "Fiscal balance",
                                "Caseload size\\textsuperscript{\\textdagger}",
                                "Work participation rate"),
           dep.var.labels = "TANF funds spent on basic assistance\\textsuperscript{\\textdagger}",
-          notes = "\\textsuperscript{\\textdagger}variable is logged; *p < 0.05",
+          notes = "\\textsuperscript{\\textdagger}variable is logged; observations may be less than 51 due to missing values; *p < 0.05",
           notes.append = FALSE,
           header = FALSE,
           notes.align = "r",
@@ -297,20 +297,22 @@ p3 <- plm(log(ba) ~ african_americans + hispanics + log(liberalism) + unemployme
 p1$vcov <- vcovHC(p1, type="HC0", method = "arellano", cluster = "group")
 p2$vcov <- vcovHC(p2, type="HC0", method = "arellano", cluster = "group")
 p3$vcov <- vcovHC(p3, type="HC0", method = "arellano", cluster = "group")
+# http://www.princeton.edu/~otorres/Panel101R.pdf
+
 
 stargazer(p1, p2, p3, 
           title = "Panel Regression Output",
           column.labels = c("Model 1 (FD)", "Model 2 (Within)", "Model 3 (Lagged)"),
-          covariate.labels = c("Percent of caseload that is African American", 
-                               "Percent of caseload that is Hispanic",
+          covariate.labels = c("Percent African American", 
+                               "Percent Hispanic",
                                "Economic policy liberalism\\textsuperscript{\\textdagger}",
                                "Unemployment rate", 
                                "Real per capita income\\textsuperscript{\\textdagger}",
-                               "Remaining fiscal balance as a percent of total spending",
+                               "Fiscal balance",
                                "Work participation rate",
                                "Lagged DV (t = 2)\\textsuperscript{\\textdagger}"),
           dep.var.labels = "TANF funds spent on basic assistance\\textsuperscript{\\textdagger}",
-          notes = "\\textsuperscript{\\textdagger}variable is logged; *p < 0.05; standard errors clustered by state",
+          notes = "\\textsuperscript{\\textdagger}variable is logged; observations with missing values are dropped; *p < 0.05; standard errors are clustered by state and are robust to serial correlation and heteroskedasticity",
           add.lines = list(c("Time Fixed Effects", "Yes", "Yes", "No"),
                            c("Individual Fixed Effects", "Yes", "Yes", "Yes")),
           notes.append = FALSE,
@@ -324,6 +326,8 @@ stargazer(p1, p2, p3,
           font.size = "small",
           type = "latex",
           out = "Figures and Tables/Table2.html")
+
+
 
 # Figure 5 ####
 ## @knitr Figure.5
