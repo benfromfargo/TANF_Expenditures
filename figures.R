@@ -245,7 +245,7 @@ l3 <- lm(log(ba) ~ african_americans + hispanics + log(liberalism) + unemploymen
            log(pcpi_regional) + fiscal_stability + log(caseload) + wpr, 
          data = panel_13)
 
-stargazer(l1, l2, l3, 
+table_1 <- capture.output(stargazer(l1, l2, l3, 
           title = "Cross-Section Regression Output",
           column.labels = c("1999", "2005", "2013"),
           covariate.labels = c("Percent African American", 
@@ -257,17 +257,21 @@ stargazer(l1, l2, l3,
                                "Caseload size\\textsuperscript{\\textdagger}",
                                "Work participation rate"),
           dep.var.labels = "TANF funds spent on basic assistance\\textsuperscript{\\textdagger}",
-          notes = "\\textsuperscript{\\textdagger}variable is logged; observations may be less than 51 due to missing values; *p < 0.05",
+          notes = "\\multicolumn{4}{l} {\\parbox[t]{13cm}{ \\textit{Notes:} \\textsuperscript{\\textdagger}variable is logged; observations may be less than 51 due to missing values; *p < 0.05}}",
           notes.append = FALSE,
+          notes.align = "l",
           header = FALSE,
-          notes.align = "r",
           model.numbers = FALSE,
           initial.zero = FALSE,
           star.cutoffs = .05,
-          column.sep.width = "1pt",
-          font.size = "small",
           type = "latex",
-          out = "Figures and Tables/Table1.html")
+          table.placement = "H",
+          out = "Figures and Tables/Table1.html"))
+
+note.latex <- "\\multicolumn{4}{l} {\\parbox[t]{13cm}{ \\textit{Notes:} \\textsuperscript{\\textdagger}variable is logged; observations may be less than 51 due to missing values; *p < 0.05}} \\\\"
+table_1[str_detect(table_1, "Note")] <- note.latex
+cat(table_1, sep = "\n")
+
 
 
 # Show table with FD, FE, and lagged DV
@@ -299,8 +303,7 @@ p2$vcov <- vcovHC(p2, type="HC0", method = "arellano", cluster = "group")
 p3$vcov <- vcovHC(p3, type="HC0", method = "arellano", cluster = "group")
 # http://www.princeton.edu/~otorres/Panel101R.pdf
 
-
-stargazer(p1, p2, p3, 
+table_2 <- capture.output(stargazer(p1, p2, p3, 
           title = "Panel Regression Output",
           column.labels = c("Model 1 (FD)", "Model 2 (Within)", "Model 3 (Lagged)"),
           covariate.labels = c("Percent African American", 
@@ -310,7 +313,7 @@ stargazer(p1, p2, p3,
                                "Real per capita income\\textsuperscript{\\textdagger}",
                                "Fiscal balance",
                                "Work participation rate",
-                               "Lagged DV (t = 2)\\textsuperscript{\\textdagger}"),
+                               "Lagged DV (t - 2)\\textsuperscript{\\textdagger}"),
           dep.var.labels = "TANF funds spent on basic assistance\\textsuperscript{\\textdagger}",
           notes = "\\textsuperscript{\\textdagger}variable is logged; observations with missing values are dropped; *p < 0.05; standard errors are clustered by state and are robust to serial correlation and heteroskedasticity",
           add.lines = list(c("Time Fixed Effects", "Yes", "Yes", "No"),
@@ -325,9 +328,12 @@ stargazer(p1, p2, p3,
           column.sep.width = "1pt",
           font.size = "small",
           type = "latex",
-          out = "Figures and Tables/Table2.html")
+          table.placement = "H",
+          out = "Figures and Tables/Table2.html"))
 
-
+note.latex_2 <- "\\multicolumn{4}{l} {\\parbox[t]{13cm}{ \\textit{Notes:} \\textsuperscript{\\textdagger}variable is logged; observations with missing values are dropped; *p < 0.05; standard errors are clustered by state and are robust to serial correlation and heteroskedasticity}} \\\\"
+table_2[str_detect(table_2, "Note")] <- note.latex_2
+cat(table_2, sep = "\n")
 
 # Figure 5 ####
 ## @knitr Figure.5
