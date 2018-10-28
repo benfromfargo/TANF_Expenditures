@@ -293,8 +293,8 @@ p2 <- plm(log(ba) ~ african_americans + hispanics + log(liberalism) + unemployme
           data = avg_props_pdata)
 
 p3 <- plm(log(ba) ~ african_americans + hispanics + log(liberalism) + unemployment +
-            log(pcpi_regional) + fiscal_stability + wpr + lag(log(ba, 2)), 
-          model = "within", 
+            log(pcpi_regional) + fiscal_stability + wpr + factor(year) + lag(log(ba), 2), 
+          model = "fd", 
           index = c("state", "year"),
           data = avg_props_pdata)
 
@@ -316,7 +316,7 @@ table_2 <- capture.output(stargazer(p1, p2, p3,
                                "Lagged DV (t - 2)\\textsuperscript{\\textdagger}"),
           dep.var.labels = "TANF funds spent on basic assistance\\textsuperscript{\\textdagger}",
           notes = "\\textsuperscript{\\textdagger}variable is logged; observations with missing values are dropped; *p < 0.05; standard errors are clustered by state and are robust to serial correlation and heteroskedasticity",
-          add.lines = list(c("Time Fixed Effects", "Yes", "Yes", "No"),
+          add.lines = list(c("Time Fixed Effects", "Yes", "Yes", "Yes"),
                            c("Individual Fixed Effects", "Yes", "Yes", "Yes")),
           notes.append = FALSE,
           omit = "year",

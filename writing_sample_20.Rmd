@@ -151,34 +151,61 @@ The cross-sectional linear regression models suggest a number of significant ass
 
 The panel structure of my dataset provides important tools for specifiying a model that controls for bias introduced by unobsereved phenomena and is free from endogenity between explanatory variables and basic assistance spending. For one, I can estimate a model that controls for state and time fixed effects. Intuitively, state-level fixed effects control for unobserved time-invariant differences between states. For instance, perhaps Wyoming's rural geography means that, regardless of the year, economy, or political party in charge, the state priortizes funding transportation programs with TANF funds over basic assistance. By estimating a model that includes a dummy variable for each state in all years, these state-level effects are held constant. Controlling for time effects follows a similar procedure, except the intuition is inveresed. By introducing a dummy variable for each year in every state, the panel model controls for factors, such as national-level developments, that are equivalent in every state but vary across time.
 
-With time and state fixed effects in place, I have a model such as: 
+With time and state fixed effects in place, I have a model specified by the equation: 
 
 \begin{equation}
-  \label{eq:1}
+  \label{original}
   Y_{it} = \beta_1X_{it1}...\beta_kX_{itk} + \gamma_2D2_t...\gamma_{16}D16_t + \alpha_i + u_{it}
 \end{equation}
 
 Where $Y$ is basic assistance spending in year $t$ and state $i$, $\beta_{1...k}$ measure the correlations between basic assistance spending and the respective explanatory variables $X_{1...n}$ that vary across states and time, $gamma_{2...16}$ capture the effects of the year dummy variables $D2_t...D16_t$, $\alpha$ is the time-invariant fixed effect for each state $i$, and $u$ is the error term for each state $i$ in each year $t$. If this model were calculated as it stands, it would likely be biased. The aim of controlling for fixed effects is to reduce omitted variable bias resulting from correlations between the error term and the various explanatory variables. Therefore, by assumption, $\alpha_i$ correlates with $X_{1...n}$. Since the current model retains the fixed effects, it can be thought of as measuring regressing basic assistance spending as a function of the explanatory variables plus an augmented error term equal to the sum of $\alpha_i$ and $u_{it}$. This error term is necessarrily correlated with the explanatory variables, resulting in biased estimates of $\beta_{1...k}$. 
 
-First differences and time-demeaning are two methods for transforming formula \ref{eq:1} into an unbiased estimation of states' basic assistance expenditures. The first differences estimator (\ref{eq:2) removes the time-invariant $\alpha_i$ by subtracting each variable's value in time $t$ from its value in time $t+1$. The resulting model regresses the change in basic assistance expenditures from time $t$ to time $t+1$ on the change in the explanatory variables and time dummy variables from time $t$ to time $t+1$:^[ The time index of the first time dummy variable changes from $D2_t$ to $D3_t$ because first differencing eliminates observations from $t = 1$ and including $t = 2$ would result in perfect multicollinearity]
+First differences and time-demeaning are two methods for transforming equation \ref{original} into an unbiased estimation of states' basic assistance expenditures. The first differences estimator (\ref{FD) removes the time-invariant $\alpha_i$ by subtracting each variable's value in time $t$ from its value in time $t+1$. The resulting model regresses the change in basic assistance expenditures from time $t$ to time $t+1$ on the change in the explanatory variables and time dummy variables from time $t$ to time $t+1$:^[ The time index of the first time dummy variable changes from $D2_t$ to $D3_t$ because first differencing eliminates observations from $t = 1$ and including $t = 2$ would result in perfect multicollinearity]
 
 \begin{equation}
-  \label{eq:2}
+  \label{FD}
   \Delta Y_{it} = \beta_1 \Delta X_{it1}...\beta_k  \Delta  X_{itk} + \gamma_3D3_t...\gamma_{16}D16_t + \Delta u_{it}
 \end{equation}
 
-While first differences removes $\alpha_i$ by subtracting each variable's value in time $t$ from its value in time $t+1$, time-demeaning (\ref{eq:3}) eliminates $\alpha_i$ by subtracting each variable's state $i$ mean value from its value in time $t$. Since $\alpha_i$ is time-invariant, it is eliminated: 
+While first differences removes $\alpha_i$ by subtracting each variable's value in time $t$ from its value in time $t+1$, time-demeaning (equation \ref{within}) eliminates $\alpha_i$ by subtracting each variable's state $i$ mean value from its value in time $t$. Since $\alpha_i$ is time-invariant, it is eliminated: 
 
 \begin{equation}
-\label{eq:3}
+\label{within}
   Y_{it} - \bar{Y_{i}} = \beta_1(X_{it1} - \bar{X_{i1}})...\beta_k(X_{itk} - \bar{X_{ik}}) + \gamma_2D2_t...\gamma_{16}D16_t + u_{it} - \bar{u_i} 
 \end{equation}
 
-The results of the first differences and time-demeaned estimates of states' basic assistance spending are shown below in the first two columns of Table 2. Both models estimate the expected value of logged basic assistance spending given the various values of the explanatory variables while holding constant time-invarant state fixed effects and national-level time fixed effects. In contrast to the linear models in Table 1, the variable estimating the correlation between caseload size and basic assistance spending is not explicitly measured due to its endogenous relationship with cash assistance spending.^[ In order to avoid endogeneity between the explanatory variables measuring the percent of African Americans and Hispanics in a state's TANF program, I calculate the variable using the percent distributions of African Americans and Hispanics receiving TANF rather than the logged number of African Americans and Hispanics in the caseload. The latter would be problematic as it would change along with overall changes in caseload sizes, which correlates with basic assistance spending in prior years. It could be argued that unemployment and per capita income also correlate with the error term since they may rise or fall according to basic assistance spending in prior years. Although possible, I assume that changes in basic assistance spending do not have a large enough effect on the entire population to sway unemployment levels or incomes.]  If the explanatory variables were strictly exogenous, the $B$ coefficients in the two models would both be unbiased and therefore equivalent.^[ In other words, the $B$ coefficients would be equivalent if the two models' transformed error terms, $\Delta u_{it}$ and  $u_{it} - \bar{u_i}$, are uncorrelated with the respective models' explanatory variables in all time periods.] Although the $B$ coefficients from the two models all share the same sign and are not of radically different magnitudes, the differences suggest that endogeneity is still  
+The results of the first differences and time-demeaned estimates of states' basic assistance spending are shown below in the first two columns of Table 2. Both models estimate the expected value of logged basic assistance spending given the various values of the explanatory variables while holding constant time-invarant state fixed effects and national-level time fixed effects. In contrast to the linear models in Table 1, the variable estimating the correlation between caseload size and basic assistance spending is not explicitly measured due to its endogenous relationship with cash assistance spending.^[ In order to avoid endogeneity between the explanatory variables measuring the percent of African Americans and Hispanics in a state's TANF program, I calculate the variable using the percent distributions of African Americans and Hispanics receiving TANF rather than the logged number of African Americans and Hispanics in the caseload. The latter would be problematic as it would change along with overall changes in caseload sizes, which correlates with basic assistance spending in prior years. It could be argued that unemployment and per capita income also correlate with the error term since they may rise or fall according to basic assistance spending in prior years. Although possible, I assume that changes in basic assistance spending do not have a large enough effect on the entire population to sway unemployment levels or incomes.]  If the explanatory variables were strictly exogenous, the $B$ coefficients in the two models would both be unbiased and therefore equivalent.^[ In other words, the $B$ coefficients would be equivalent if the two models' transformed error terms, $\Delta u_{it}$ and  $u_{it} - \bar{u_i}$, are uncorrelated with the respective models' explanatory variables in all time periods.] Although the $B$ coefficients from the two models all share the same sign and are not of radically different magnitudes, the differences suggest that endogeneity and bias are still present.  
 
 ``` {r table2, results = "asis", message = FALSE}
 <<Table.2>>
 ```
+
+One possible source of bias in the first differences and time-demeaned estimators is unobserved state-level, time-varying heterogeneity. Both models control for time-invariant and national-level phenomena, but they do not account for the possibility that there other state-level forces that vary across time and affect basic assistance spending. One such potential confounder is caseload size. The first two models account for national-level changes in caseloads by including time dummy variables, but lack controls for any remaining within-state variation in caseload sizes since, as discussed above, an explicitly specified caseload explanatory variable is endogenous to basic assistance spending. 
+
+Specifying a dynamic model that includes a control for state-specific, time-varying confounders is challenging. One option is to add a dependent variable lagged back one period. This would control for the effect of basic assistance spending in time $t$ on spending in time $t+1$. In addition to controlling for any institutional path dependency, it would also partly control for state-level variation in caseload sizes. Unfortunately, however, specifying a model with a one-period lag of the dependent variable introduces bias [@nickellBiasesDynamicModels1981]. This can be seen by adding a lagged dependent variable $Y_{it-1}$ to the right-hand side of equation \ref{original} and, as in equation \ref{FD}, removing $\alpha_i$ by first differencing:
+
+\begin{equation}
+  \label{lagged}
+  $\Delta Y_{it} = \gamma\Delta Y_{it-1} + \beta_1 \Delta X_{it1}...\beta_k  \Delta  X_{itk} + \gamma_3D3_t...\gamma_{16}D16_t + \Delta u_{it}$
+\end{equation}
+
+The problem lies in the fact that the change in the lagged dependent variable from time $t-2$ to time $t-1$ correlates with the change in the error term from time $t-1$ to time $t$ since $Y_{it-1}$ is partly a function of $u_{it-1}$. Fully correcting for this error while retaining the benefits of a lagged dependent variable is complex and beyond the scope of this paper.^[ See @wawroEstimatingDynamicPanel2002 for a discussion of more advanced techniques for estimating dynamic panel models.] For my purposes, I attempt to remove the bias with the instrumental variable approach first suggested by @andersonEstimationDynamicModels1981 and @andersonFormulationEstimationDynamic1982. This technique involves replacing $\Delta Y_{it-1}$ in equation \ref{lagged} with $\Delta Y_{it-2}$, under the simplifying assumption that $\Delta Y_{it-2}$ is uncorrelated with $\Delta u_{it}$ but correlated with $\Delta Y_{it-1}$. The results of the equation are included above in the third column of Table 2. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
