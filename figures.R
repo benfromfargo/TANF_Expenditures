@@ -250,7 +250,7 @@ table_1 <- capture.output(stargazer(l1, l2, l3,
           column.labels = c("1999", "2005", "2013"),
           covariate.labels = c("Percent African American", 
                                "Percent Hispanic",
-                               "Economic policy liberalism\\textsuperscript{\\textdagger}",
+                               "Liberalism\\textsuperscript{\\textdagger}",
                                "Unemployment rate", 
                                "Real per capita income\\textsuperscript{\\textdagger}",
                                "Fiscal balance",
@@ -293,7 +293,8 @@ p2 <- plm(log(ba) ~ african_americans + hispanics + log(liberalism) + unemployme
           data = avg_props_pdata)
 
 p3 <- plm(log(ba) ~ african_americans + hispanics + log(liberalism) + unemployment +
-            log(pcpi_regional) + fiscal_stability + wpr + factor(year) + lag(log(ba), 2), 
+            log(pcpi_regional) + fiscal_stability + wpr + factor(year) + lag(log(ba), 2) 
+          + lag(log(ba), 3), 
           model = "fd", 
           index = c("state", "year"),
           data = avg_props_pdata)
@@ -305,15 +306,16 @@ p3$vcov <- vcovHC(p3, type="HC0", method = "arellano", cluster = "group")
 
 table_2 <- capture.output(stargazer(p1, p2, p3, 
           title = "Panel Regression Output",
-          column.labels = c("Model 1 (FD)", "Model 2 (Within)", "Model 3 (Lagged)"),
+          column.labels = c("First differences", "Time-demeaned", "Lagged dependent variable"),
           covariate.labels = c("Percent African American", 
                                "Percent Hispanic",
-                               "Economic policy liberalism\\textsuperscript{\\textdagger}",
+                               "Liberalism\\textsuperscript{\\textdagger}",
                                "Unemployment rate", 
                                "Real per capita income\\textsuperscript{\\textdagger}",
                                "Fiscal balance",
                                "Work participation rate",
-                               "Lagged DV (t - 2)\\textsuperscript{\\textdagger}"),
+                               "Lagged DV (t - 2)\\textsuperscript{\\textdagger}",
+                               "Lagged DV (t - 3)\\textsuperscript{\\textdagger}"),
           dep.var.labels = "TANF funds spent on basic assistance\\textsuperscript{\\textdagger}",
           notes = "\\textsuperscript{\\textdagger}variable is logged; observations with missing values are dropped; *p < 0.05; standard errors are clustered by state and are robust to serial correlation and heteroskedasticity",
           add.lines = list(c("Time Fixed Effects", "Yes", "Yes", "Yes"),
@@ -334,6 +336,14 @@ table_2 <- capture.output(stargazer(p1, p2, p3,
 note.latex_2 <- "\\multicolumn{4}{l} {\\parbox[t]{13cm}{ \\textit{Notes:} \\textsuperscript{\\textdagger}variable is logged; observations with missing values are dropped; *p < 0.05; standard errors are clustered by state and are robust to serial correlation and heteroskedasticity}} \\\\"
 table_2[str_detect(table_2, "Note")] <- note.latex_2
 cat(table_2, sep = "\n")
+
+avg_props_pdata %>% 
+  group_by(state) %>% 
+  summarise(sd = sd(hispanics, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  summarise(mean_sd = mean(sd))
+
+
 
 # Figure 5 ####
 ## @knitr Figure.5
