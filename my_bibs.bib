@@ -424,7 +424,7 @@
 @misc{rcoreteamLanguageEnvironmentStatistical2018,
   address = {Vienna, Austria},
   title = {R: {{A}} Language and Environment for Statistical Computing},
-  publisher = {{R Foundation for Statistical Computing}},
+  howpublished = {R Foundation for Statistical Computing},
   author = {{R Core Team}},
   year = {2018}
 }
@@ -436,65 +436,92 @@
   year = {2014}
 }
 
-
-@Article{nickellBiasesDynamicModels1981,
+@article{nickellBiasesDynamicModels1981,
   title = {Biases in {{Dynamic Models}} with {{Fixed Effects}}},
   volume = {49},
   issn = {0012-9682},
-  url = {https://www.jstor.org/stable/1911408},
   doi = {10.2307/1911408},
-  abstract = {It is well known from the Monte-Carlo work of Nerlove that using the standard within-group estimator for dynamic models with fixed individual effects generates estimates which are inconsistent as the number of {"}individuals{"} tends to infinity if the number of time periods is kept fixed. In this paper we present analytical expressions for these inconsistencies for the first order autoregressive case.},
+  abstract = {It is well known from the Monte-Carlo work of Nerlove that using the standard within-group estimator for dynamic models with fixed individual effects generates estimates which are inconsistent as the number of "individuals" tends to infinity if the number of time periods is kept fixed. In this paper we present analytical expressions for these inconsistencies for the first order autoregressive case.},
   number = {6},
-  journaltitle = {Econometrica},
-  urldate = {2018-10-28},
-  date = {1981},
-  pages = {1417-1426},
-  author = {Stephen Nickell},
+  journal = {Econometrica},
+  author = {Nickell, Stephen},
+  year = {1981},
+  pages = {1417-1426}
 }
-@Article{andersonEstimationDynamicModels1981,
-  title = {Estimation of {{Dynamic Models}} with {{Error Components}}},
-  volume = {76},
-  issn = {0162-1459},
-  url = {https://www.jstor.org/stable/2287517},
-  doi = {10.2307/2287517},
-  abstract = {Observations on N cross-section units at T time points are used to estimate a simple statistical model involving an autoregressive process with an additive term specific to the unit. Different assumptions about the initial conditions are (a) initial state fixed, (b) initial state random, (c) the unobserved individual effect independent of the unobserved dynamic process with the initial value fixed, and (d) the unobserved individual effect independent of the unobserved dynamic process with initial value random. Asymptotic properties of the maximum likelihood and {"}covariance{"} estimators are obtained when T → ∞ and when N → ∞. The relationship between the pseudo and conditional maximum likelihood estimators is clarified. A simple consistent estimator that is independent of the initial conditions and the way in which T or N → ∞ is also suggested.},
-  number = {375},
-  journaltitle = {Journal of the American Statistical Association},
-  urldate = {2018-10-28},
-  date = {1981},
-  pages = {598-606},
-  author = {T. W. Anderson and Cheng Hsiao},
-  file = {/Users/Ben/Zotero/storage/PKNSXTEX/Anderson and Hsiao - 1981 - Estimation of Dynamic Models with Error Components.pdf},
-}
-@Article{andersonFormulationEstimationDynamic1982,
-  title = {Formulation and Estimation of Dynamic Models Using Panel Data},
-  volume = {18},
-  issn = {0304-4076},
-  url = {http://www.sciencedirect.com/science/article/pii/0304407682900951},
-  doi = {10.1016/0304-4076(82)90095-1},
-  abstract = {This paper presents a statistical analysis of time series regression models for longitudinal data with and without lagged dependent variables under a variety of assumptions about the initial conditions of the processes being analyzed. The analysis demonstrates how the asymptotic properties of estimators of longitudinal models are critically dependent on the manner in which samples become large: by expanding the number of observations per person, holding the number of people fixed, or by expanding the number of persons, holding the number of observations per person fixed. The paper demonstrates which parameters can and cannot be identified from data produced by different sampling plans.},
-  number = {1},
-  journaltitle = {Journal of Econometrics},
-  shortjournal = {Journal of Econometrics},
-  urldate = {2018-10-28},
-  date = {1982-01-01},
-  pages = {47-82},
-  author = {T. W. Anderson and Cheng Hsiao},
-  file = {/Users/Ben/Zotero/storage/TVUEVZRL/0304407682900951.html},
-}
-@Article{wawroEstimatingDynamicPanel2002,
-  langid = {english},
+
+@article{wawroEstimatingDynamicPanel2002,
   title = {Estimating {{Dynamic Panel Data Models}} in {{Political Science}}},
   volume = {10},
   issn = {1047-1987, 1476-4989},
-  url = {https://www.cambridge.org/core/journals/political-analysis/article/estimating-dynamic-panel-data-models-in-political-science/D794BAFBF5EED50B6FC000ACC1D1F869},
   doi = {10.1093/pan/10.1.25},
   abstract = {Panel data are a very valuable resource for finding empirical solutions to political science puzzles. Yet numerous published studies in political science that use panel data to estimate models with dynamics have failed to take into account important estimation issues, which calls into question the inferences we can make from these analyses. The failure to account explicitly for unobserved individual effects in dynamic panel data induces bias and inconsistency in cross-sectional estimators. The purpose of this paper is to review dynamic panel data estimators that eliminate these problems. I first show how the problems with cross-sectional estimators arise in dynamic models for panel data. I then show how to correct for these problems using generalized method of moments estimators. Finally, I demonstrate the usefulness of these methods with replications of analyses in the debate over the dynamics of party identification.},
+  language = {en},
   number = {1},
-  journaltitle = {Political Analysis},
-  urldate = {2018-10-28},
+  journal = {Political Analysis},
+  author = {Wawro, Gregory},
   year = {2002/ed},
   pages = {25-48},
-  author = {Gregory Wawro},
-  file = {/Users/Ben/Zotero/storage/MK5JISWD/D794BAFBF5EED50B6FC000ACC1D1F869.html},
+  file = {/Users/Ben/Zotero/storage/MK5JISWD/D794BAFBF5EED50B6FC000ACC1D1F869.html}
 }
+
+@article{andersonEstimationDynamicModels1981,
+  title = {Estimation of {{Dynamic Models}} with {{Error Components}}},
+  volume = {76},
+  issn = {0162-1459},
+  doi = {10.2307/2287517},
+  abstract = {Observations on N cross-section units at T time points are used to estimate a simple statistical model involving an autoregressive process with an additive term specific to the unit. Different assumptions about the initial conditions are (a) initial state fixed, (b) initial state random, (c) the unobserved individual effect independent of the unobserved dynamic process with the initial value fixed, and (d) the unobserved individual effect independent of the unobserved dynamic process with initial value random. Asymptotic properties of the maximum likelihood and "covariance" estimators are obtained when T $\rightarrow$ $\infty$ and when N $\rightarrow$ $\infty$. The relationship between the pseudo and conditional maximum likelihood estimators is clarified. A simple consistent estimator that is independent of the initial conditions and the way in which T or N $\rightarrow$ $\infty$ is also suggested.},
+  number = {375},
+  journal = {Journal of the American Statistical Association},
+  author = {Anderson, T. W. and Hsiao, Cheng},
+  year = {1981},
+  pages = {598-606},
+  file = {/Users/Ben/Zotero/storage/PKNSXTEX/Anderson and Hsiao - 1981 - Estimation of Dynamic Models with Error Components.pdf}
+}
+
+@article{andersonFormulationEstimationDynamic1982,
+  title = {Formulation and Estimation of Dynamic Models Using Panel Data},
+  volume = {18},
+  issn = {0304-4076},
+  doi = {10.1016/0304-4076(82)90095-1},
+  abstract = {This paper presents a statistical analysis of time series regression models for longitudinal data with and without lagged dependent variables under a variety of assumptions about the initial conditions of the processes being analyzed. The analysis demonstrates how the asymptotic properties of estimators of longitudinal models are critically dependent on the manner in which samples become large: by expanding the number of observations per person, holding the number of people fixed, or by expanding the number of persons, holding the number of observations per person fixed. The paper demonstrates which parameters can and cannot be identified from data produced by different sampling plans.},
+  number = {1},
+  journal = {Journal of Econometrics},
+  author = {Anderson, T. W. and Hsiao, Cheng},
+  month = jan,
+  year = {1982},
+  pages = {47-82},
+  file = {/Users/Ben/Zotero/storage/TVUEVZRL/0304407682900951.html}
+}
+
+@article{andersonEstimationDynamicModels1981a,
+  title = {Estimation of {{Dynamic Models}} with {{Error Components}}},
+  volume = {76},
+  issn = {0162-1459},
+  doi = {10.2307/2287517},
+  abstract = {Observations on N cross-section units at T time points are used to estimate a simple statistical model involving an autoregressive process with an additive term specific to the unit. Different assumptions about the initial conditions are (a) initial state fixed, (b) initial state random, (c) the unobserved individual effect independent of the unobserved dynamic process with the initial value fixed, and (d) the unobserved individual effect independent of the unobserved dynamic process with initial value random. Asymptotic properties of the maximum likelihood and "covariance" estimators are obtained when T $\rightarrow$ $\infty$ and when N $\rightarrow$ $\infty$. The relationship between the pseudo and conditional maximum likelihood estimators is clarified. A simple consistent estimator that is independent of the initial conditions and the way in which T or N $\rightarrow$ $\infty$ is also suggested.},
+  number = {375},
+  journal = {Journal of the American Statistical Association},
+  author = {Anderson, T. W. and Hsiao, Cheng},
+  year = {1981},
+  pages = {598-606},
+  file = {/Users/Ben/Zotero/storage/GAEK7MSP/Anderson and Hsiao - 1981 - Estimation of Dynamic Models with Error Components.pdf}
+}
+
+@article{arellanoTestsSpecificationPanel1991,
+  title = {Some {{Tests}} of {{Specification}} for {{Panel Data}}: {{Monte Carlo Evidence}} and an {{Application}} to {{Employment Equations}}},
+  volume = {58},
+  issn = {0034-6527},
+  shorttitle = {Some {{Tests}} of {{Specification}} for {{Panel Data}}},
+  doi = {10.2307/2297968},
+  abstract = {Abstract.  This paper presents specification tests that are applicable after estimating a dynamic model from panel data by the generalized method of moments (GM},
+  language = {en},
+  number = {2},
+  journal = {The Review of Economic Studies},
+  author = {Arellano, Manuel and Bond, Stephen},
+  month = apr,
+  year = {1991},
+  pages = {277-297},
+  file = {/Users/Ben/Zotero/storage/Q3TL48BL/1563354.html}
+}
+
+

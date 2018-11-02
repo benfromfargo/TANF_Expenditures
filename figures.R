@@ -337,39 +337,11 @@ note.latex_2 <- "\\multicolumn{4}{l} {\\parbox[t]{13cm}{ \\textit{Notes:} \\text
 table_2[str_detect(table_2, "Note")] <- note.latex_2
 cat(table_2, sep = "\n")
 
-avg_props_pdata %>% 
-  group_by(state) %>% 
-  summarise(sd = sd(hispanics, na.rm = TRUE)) %>% 
-  ungroup() %>% 
-  summarise(mean_sd = mean(sd))
-
-
-
-# Figure 5 ####
-## @knitr Figure.5
-
-time_effects <- data.frame(summary(p4)["coefficients"])
-time_effects <- rownames_to_column(time_effects, "year") 
-
-time_effects <- time_effects %>% 
-  filter((str_detect(time_effects$year, "factor"))) %>% 
-  mutate(year = 1999:2013)
-
-time_effects %>%
-  mutate(year = as.character(year)) %>% 
-  ggplot() +
-  geom_point(aes(x = year, y = coefficients.Estimate)) +
-  geom_errorbar(aes(x = year,
-                    ymin = coefficients.Estimate - 1.96*coefficients.Std..Error,
-                    ymax = coefficients.Estimate + 1.96*coefficients.Std..Error)) +
-  scale_x_discrete(breaks = c(1999, 2003, 2008, 2013)) +
-  scale_y_continuous(limits = c(-40, 0),
-                     breaks = c(0, -10, -20, -30, -40)) +
-  labs(caption = "Note: Error bars represent 95% confidence intervals.",
-       x = NULL, 
-       y = NULL) +
-  theme(plot.caption = element_text(size=7, hjust = 0))
-
+#avg_props_pdata %>% 
+#  group_by(state) %>% 
+#  summarise(sd = sd(hispanics, na.rm = TRUE)) %>% 
+#  ungroup() %>% 
+#  summarise(mean_sd = mean(sd))
 
 
 
