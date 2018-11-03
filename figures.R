@@ -1,4 +1,4 @@
-# Init ####
+############### Front matter ########################
 source("TANF_clean.R")
 
 library(ggrepel)
@@ -17,7 +17,9 @@ my_theme <- theme_classic() +
         axis.ticks.y = element_blank())
 theme_set(my_theme)
 
-# Figure 1 ####
+######################################################
+################## Figure 1 ##########################
+######################################################
 ## @knitr Figure.1
 
 ann_means <- avg_props %>% 
@@ -47,8 +49,8 @@ ggplot(ann_means_vis, aes(year, value, color = category, group = category)) +
   scale_color_manual(values = c("#000000", "#000000", "#000000"),
                      guide = FALSE) +
   theme(plot.caption = element_text(size = 7, hjust = 0)) +
-  labs(caption = "Note: See Table 3 in the appendix for category groups. Percentages may not add up to 100% in a given fiscal year due to the removal of outlier values. 
-See appendix for more information.",
+  labs(caption = "Note: See Table 3 in the appendix for a list of the spending categories that compose each spending type. Percentages may not add up to 100% 
+in a given fiscal year due to the removal of outlier values. Refer to the appendix for more information.",
        x = NULL,
        y = NULL) +
   annotate("text", "2008", .23, 
@@ -56,18 +58,20 @@ See appendix for more information.",
            hjust = 0,
            size = 3,
            family = "Times New Roman") +
-  annotate("text", "2008", .33, 
-           label = "Other", 
+  annotate("text", "2008", .335, 
+           label = "Other spending", 
            hjust = 0,
            size = 3,
            family = "Times New Roman") +
-  annotate("text", "2008", .465, 
+  annotate("text", "2008", .47, 
            label = "Work-related, in-kind,\nand short-term benefits", 
            hjust = 0,
            size = 3,
            family = "Times New Roman")
 
-# Figure 2 ####
+######################################################
+################## Figure 2 ##########################
+######################################################
 ## @knitr Figure.2
 
 x <- ann_means %>% 
@@ -75,8 +79,8 @@ x <- ann_means %>%
   mutate(label = ifelse(year == "2013", category, NA)) %>% 
   mutate(label = case_when(
     label == "cc" ~ "     Child care",
-    label == "work" ~ "     Work-related activities and supports", 
-    label == "pregnancy" ~ "     Marriage and pregnancy programs",
+    label == "work" ~ "     Work-related activities\n     and supports", 
+    label == "pregnancy" ~ "     Marriage and pregnancy\n     programs",
     label == "tax" ~ "     Refundable tax credits", 
     label == "shortben" ~ "     Diversion benefits")) %>% 
   ggplot(aes(year, value, group = category)) +
@@ -100,7 +104,9 @@ gt <- ggplotGrob(x)
 gt$layout$clip[gt$layout$name == "panel"] <- "off"
 grid.draw(gt)
 
-# Figure 3 ####
+######################################################
+################## Figure 3 ##########################
+######################################################
 ## @knitr Figure.3
 
 avg_props_id <- avg_props %>% 
@@ -139,7 +145,9 @@ suppressWarnings(avg_props_id %>%
                                       breaks = seq(0, 1, .25),
                                       limits = c(0,1)))
 
-# Figure 4 ####
+######################################################
+################## Figure 4 ##########################
+######################################################
 ## @knitr Figure.4
 
 top_ten_98 <- avg_props_id %>% 
@@ -152,7 +160,7 @@ bottom_ten_98 <- avg_props_id %>%
   filter(!is.na(ba)) %>% 
   top_n(-10, ba)
 
-## PLOT 1
+#################### PLOT 1 ###########################
 
 plot_one <- avg_props_id %>% 
   filter(year == 1998 | year == 2013) %>%
@@ -171,7 +179,7 @@ plot_one <- avg_props_id %>%
   scale_x_discrete(expand = expand_scale(mult = c(.05,.2))) +
   scale_color_manual(values = c("#cccccc", "#000000"), 
                      guide = FALSE) +
-  scale_alpha_manual(values = c(.4, .8),
+  scale_alpha_manual(values = c(.5, 1),
                      guide = FALSE) +
   geom_text_repel(aes(year, ba, 
                       label = ifelse(year == "2013" & state_id %in% top_ten_98$state_id,
@@ -186,7 +194,7 @@ plot_one <- avg_props_id %>%
        y = NULL,
        subtitle = "Ten highest spending states in FY 1998")
 
-## PLOT 2
+#################### PLOT 2 #############################
 
 plot_two <- avg_props_id %>% 
   filter(year == 1998 | year == 2013) %>%
@@ -205,7 +213,7 @@ plot_two <- avg_props_id %>%
         plot.subtitle = element_text(hjust = .5, size = 10)) +
   scale_color_manual(values = c("#cccccc", "#000000"), 
                      guide = FALSE) +
-  scale_alpha_manual(values = c(.4, .8),
+  scale_alpha_manual(values = c(.5, 1),
                      guide = FALSE) +
   geom_text_repel(aes(year, ba, 
                       label = ifelse(year == "2013" & state_id %in% bottom_ten_98$state_id,
@@ -226,7 +234,9 @@ grid.arrange(plot_one, plot_two, ncol = 2,
                                               fontfamily = "Times New Roman"),
                                     hjust = .48))
 
-# Table 1 ####
+######################################################
+################## Table 1 ###########################
+######################################################
 ## @knitr Table.1
 panel_99 <- avg_props_pdata %>% 
   filter(year == 1999)
@@ -246,7 +256,7 @@ l3 <- lm(log(ba) ~ african_americans + hispanics + log(liberalism) + unemploymen
          data = panel_13)
 
 table_1 <- capture.output(stargazer(l1, l2, l3, 
-          title = "Cross-Section Regression Output",
+          title = "Cross-Sectional Regression Models, FY 1999, 2005, and 2013",
           column.labels = c("1999", "2005", "2013"),
           covariate.labels = c("Percent African American", 
                                "Percent Hispanic",
@@ -265,6 +275,7 @@ table_1 <- capture.output(stargazer(l1, l2, l3,
           initial.zero = FALSE,
           star.cutoffs = .05,
           type = "latex",
+          font.size = "small",
           table.placement = "H",
           out = "Figures and Tables/Table1.html"))
 
@@ -272,13 +283,9 @@ note.latex <- "\\multicolumn{4}{l} {\\parbox[t]{13cm}{ \\textit{Notes:} \\textsu
 table_1[str_detect(table_1, "Note")] <- note.latex
 cat(table_1, sep = "\n")
 
-
-
-# Show table with FD, FE, and lagged DV
-# Maybe argue for lagged DV model since time invariant is hard to square (caseload change? - maybe here 
-# rather than explicit (?))
-
-# Table 2 ####
+######################################################
+################## Table 2 ###########################
+######################################################
 ## @knitr Table.2
 p1 <- plm(log(ba) ~ african_americans + hispanics + log(liberalism) + unemployment +
            log(pcpi_regional) + fiscal_stability + wpr + factor(year), 
@@ -305,7 +312,7 @@ p3$vcov <- vcovHC(p3, type="HC0", method = "arellano", cluster = "group")
 # http://www.princeton.edu/~otorres/Panel101R.pdf
 
 table_2 <- capture.output(stargazer(p1, p2, p3, 
-          title = "Panel Regression Output",
+          title = "Panel Regression Models",
           column.labels = c("First differences", "Time-demeaned", "Lagged dependent variable"),
           covariate.labels = c("Percent African American", 
                                "Percent Hispanic",
@@ -344,8 +351,13 @@ cat(table_2, sep = "\n")
 #  summarise(mean_sd = mean(sd))
 
 
-
-
+#test <- plm(log(pcpi_regional) ~ unemployment + factor(year), 
+#          model = "within", 
+#          index = c("state", "year"),
+#          data = avg_props_pdata)
+#stargazer(test, 
+#          omit = "year",
+#          type = "text")
 
 
 
