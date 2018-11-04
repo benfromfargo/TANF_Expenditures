@@ -40,7 +40,7 @@ ann_means_vis <- ann_means_vis %>%
   mutate(category = factor(category, levels = c("other", "service", "ba")))
 
 ggplot(ann_means_vis, aes(year, value, color = category, group = category)) +
-  geom_line() +
+  geom_line(aes(linetype = category)) +
   scale_x_discrete(breaks = c("1998", "2003", "2008", "2013")) +
   scale_y_continuous(labels = scales::percent_format(1),
                      expand = c(0, 0),
@@ -48,6 +48,8 @@ ggplot(ann_means_vis, aes(year, value, color = category, group = category)) +
                      breaks = seq(0, .6, .1)) +
   scale_color_manual(values = c("#000000", "#000000", "#000000"),
                      guide = FALSE) +
+  scale_linetype_manual(values = c(2, 4, 1), 
+                          guide = FALSE) +
   theme(plot.caption = element_text(size = 7, hjust = 0)) +
   labs(caption = "Note: See Table 3 in the appendix for a list of the spending categories that compose each spending type. Percentages may not add up to 100% 
 in a given fiscal year due to the removal of outlier values. Refer to the appendix for more information.",
